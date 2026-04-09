@@ -1,0 +1,1080 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Yu机</title>
+    <meta name="description" content="Yu机是一个把本地档案、世界书、角色聊天、论坛感界面和轻量持久化整合到一起的单页应用。">
+    <meta name="theme-color" content="#ebf3f9">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Yu机">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Yu机">
+    <meta property="og:description" content="本地档案、世界书、角色聊天与论坛感界面整合的轻量网页应用。">
+    <meta property="og:image" content="assets/icon-512.png">
+    <meta property="og:image:width" content="512">
+    <meta property="og:image:height" content="512">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Yu机">
+    <meta name="twitter:description" content="本地档案、世界书、角色聊天与论坛感界面整合的轻量网页应用。">
+    <meta name="twitter:image" content="assets/icon-512.png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="assets/icon-192.png" sizes="192x192" type="image/png">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+    <!-- 使用非emoji的纯净矢量图标库 -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    <!-- 引入 Dexie.js 库，处理IndexedDB持久化 -->
+    <script src="https://unpkg.com/dexie@3.2.2/dist/dexie.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div id="phone">
+        <div class="status-bar">
+            <div id="clock">00:00</div>
+            <div class="battery">
+                <!-- 重绘的实时电量图标 -->
+                <svg width="22" height="12" viewBox="0 0 22 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="1" y="1" width="18" height="10" rx="3" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M21 4V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    <rect x="3" y="3" width="10" height="6" rx="1.5" fill="currentColor"/>
+                </svg>
+            </div>
+        </div>
+
+        <div id="pure-lock-screen" onclick="goToPasswordScreen()">
+            <div id="pure-lock-clock">00:00</div>
+            <div class="unlock-hint">
+                <i data-feather="chevron-up" width="24" height="24"></i>
+                <span style="margin-top: 5px;">点击或上滑解锁</span>
+            </div>
+        </div>
+
+        <div id="password-screen">
+            <div id="pass-clock">00:00</div>
+            
+            <div class="password-hint">请输入密码</div>
+            <div class="password-dots" id="dots-container">
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            </div>
+
+            <div class="keypad">
+                <div class="key" onclick="pressKey(1)">1</div><div class="key" onclick="pressKey(2)">2</div><div class="key" onclick="pressKey(3)">3</div>
+                <div class="key" onclick="pressKey(4)">4</div><div class="key" onclick="pressKey(5)">5</div><div class="key" onclick="pressKey(6)">6</div>
+                <div class="key" onclick="pressKey(7)">7</div><div class="key" onclick="pressKey(8)">8</div><div class="key" onclick="pressKey(9)">9</div>
+                <div class="key" onclick="clearPass()"><i data-feather="x" width="24" height="24"></i></div>
+                <div class="key" onclick="pressKey(0)">0</div>
+                <div class="key" onclick="deletePass()"><i data-feather="delete" width="24" height="24"></i></div>
+            </div>
+        </div>
+
+        <!-- 桌面主屏 -->
+        <div id="home-screen">
+            <div class="widget-calendar">
+                <div class="day" id="cal-day">20</div>
+                <div class="date" id="cal-date">星期四, 10月</div>
+            </div>
+
+            <div class="widget-music" onclick="openMusicListModal()">
+                <div class="album-cover" id="widget-cover">
+                    <i data-feather="music" width="24" height="24" color="var(--accent-color)" id="widget-default-icon"></i>
+                </div>
+                <div class="music-info">
+                    <div class="title" id="widget-title">暂无歌曲</div>
+                    <div class="singer" id="widget-singer">请添加</div>
+                    <div class="bar">
+                        <div class="bar-progress" id="widget-progress"></div>
+                    </div>
+                </div>
+                <div id="widget-play-btn" onclick="togglePlay(event)">
+                    <i data-feather="play-circle" width="32" height="32"></i>
+                </div>
+            </div>
+
+            <div class="app-grid">
+                <div class="app-item" onclick="openArchiveApp()"><div class="app-icon"><i data-feather="folder"></i></div><span>档案</span></div>
+                <div class="app-item" onclick="openChatApp()"><div class="app-icon"><i data-feather="message-circle"></i></div><span>聊天</span></div>
+                <div class="app-item" onclick="openForum()"><div class="app-icon"><i data-feather="users"></i></div><span>论坛</span></div>
+                <div class="app-item"><div class="app-icon"><i data-feather="map-pin"></i></div><span>查岗</span></div>
+            </div>
+
+            <div class="dock">
+                <div class="dock-icon"><i data-feather="database"></i></div>
+                <div class="dock-icon" onclick="openWorldbook()"><i data-feather="book-open"></i></div>
+                <!-- 点击主题图标打开主题页面 -->
+                <div class="dock-icon" onclick="openThemeSettings()"><i data-feather="aperture"></i></div>
+                <!-- 点击设置图标打开设置页面 -->
+                <div class="dock-icon" onclick="openSettings()"><i data-feather="settings"></i></div>
+            </div>
+        </div>
+
+        <!-- 论坛功能页面 -->
+        <div id="forum-home-screen">
+            <div class="forum-header">
+                <div class="forum-header-left">
+                    <div class="back-btn" onclick="exitForum()"><i data-feather="chevron-left"></i></div>
+                    <h2 style="font-weight: normal;">论坛</h2>
+                </div>
+                <div class="forum-header-actions">
+                    <div class="header-icon-btn" onclick="switchForumTab('profile')"><i data-feather="user"></i></div>
+                    <div class="header-icon-btn"><i data-feather="refresh-cw"></i></div>
+                </div>
+            </div>
+            
+            <div class="post-card" onclick="openPostDetail()">
+                <div class="post-header">
+                    <div class="post-avatar forum-user-avatar"><i data-feather="user" width="18" height="18"></i></div>
+                    <div class="post-meta">
+                        <div class="post-author forum-profile-name-output">Yu用户</div>
+                        <div class="post-time">10分钟前</div>
+                    </div>
+                </div>
+                <div class="post-content">今天天气真不错，分享一首好听的歌。大家最近在听什么呢？</div>
+                <div class="post-actions">
+                    <div class="post-action"><i data-feather="heart" width="16"></i> 12</div>
+                    <div class="post-action"><i data-feather="message-circle" width="16"></i> 5</div>
+                    <div class="post-action"><i data-feather="share-2" width="16"></i> 分享</div>
+                </div>
+            </div>
+
+            <div class="post-card" onclick="openPostDetail()">
+                <div class="post-header">
+                    <div class="post-avatar"><i data-feather="shield" width="18" height="18"></i></div>
+                    <div class="post-meta">
+                        <div class="post-author">系统管理员</div>
+                        <div class="post-time">1小时前</div>
+                    </div>
+                </div>
+                <div class="post-content">欢迎来到新版Yu论坛！请遵守相关规定。</div>
+                <div class="post-actions">
+                    <div class="post-action"><i data-feather="heart" width="16"></i> 99+</div>
+                    <div class="post-action"><i data-feather="message-circle" width="16"></i> 12</div>
+                    <div class="post-action"><i data-feather="share-2" width="16"></i> 分享</div>
+                </div>
+            </div>
+
+            <div class="floating-add-btn"><i data-feather="plus" width="28" height="28"></i></div>
+        </div>
+
+        <div id="chat-screen">
+            <div class="chat-shell">
+                <div class="chat-top-actions">
+                    <div class="chat-dock-btn active" data-tab="threads" onclick="switchChatTab('threads')"><i data-feather="message-square"></i></div>
+                    <div class="chat-dock-btn" data-tab="moments" onclick="switchChatTab('moments')"><i data-feather="camera"></i></div>
+                    <div class="chat-dock-btn" data-tab="profile" onclick="switchChatTab('profile')"><i data-feather="user"></i></div>
+                </div>
+
+                <div class="chat-header">
+                    <div class="back-btn" onclick="closeChatApp()"><i data-feather="chevron-left"></i></div>
+                    <div class="chat-header-copy">
+                        <div class="chat-header-title" id="chat-header-title">聊天</div>
+                        <div class="chat-header-subtitle" id="chat-header-subtitle">PRIVATE CHANNELS</div>
+                    </div>
+                </div>
+
+                <div class="chat-body">
+                    <div class="chat-panel active" id="chat-panel-threads">
+                        <div class="chat-feature-card hero">
+                            <div class="chat-feature-top">
+                                <div>
+                                    <div class="chat-eyebrow">CURATED INBOX</div>
+                                    <div class="chat-feature-title">私密消息流</div>
+                                    <div class="chat-feature-desc">保留干净的玻璃雾感界面，把重要对话、未读提醒和最近互动压进一层清晰的消息视图。</div>
+                                </div>
+                                <div class="chat-avatar-stack">
+                                    <div class="chat-avatar-chip" id="chat-stack-avatar-primary"><i data-feather="user" width="18" height="18"></i></div>
+                                    <div class="chat-avatar-chip"><i data-feather="shield" width="16" height="16"></i></div>
+                                    <div class="chat-avatar-chip"><i data-feather="star" width="16" height="16"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-role-section">
+                            <div class="chat-list-head">
+                                <div>
+                                    <div class="chat-list-title">角色会话</div>
+                                    <div class="chat-list-copy">点右侧 + 把档案角色加入消息页，直接进入本地角色聊天。</div>
+                                </div>
+                                <div class="header-action-icon-btn chat-list-add-btn" onclick="openChatRolePicker()"><i data-feather="plus"></i></div>
+                            </div>
+                            <div class="chat-role-list" id="chat-role-thread-list"></div>
+                        </div>
+                        <div class="chat-list">
+                            <div class="chat-thread">
+                                <div class="chat-thread-avatar" id="chat-thread-avatar-self"><i data-feather="user"></i></div>
+                                <div class="chat-thread-main">
+                                    <div class="chat-thread-name">置顶会话</div>
+                                    <div class="chat-thread-snippet">新上传的头像、背景图和档案卡会自动同步到相关界面展示。</div>
+                                </div>
+                                <div class="chat-thread-meta">
+                                    <span>刚刚</span>
+                                    <div class="chat-thread-badge">1</div>
+                                </div>
+                            </div>
+                            <div class="chat-thread">
+                                <div class="chat-thread-avatar"><i data-feather="layers"></i></div>
+                                <div class="chat-thread-main">
+                                    <div class="chat-thread-name">设计频道</div>
+                                    <div class="chat-thread-snippet">聊天页改成右上角纵向图标 dock，整体按钮全部无文字，视觉会更轻。</div>
+                                </div>
+                                <div class="chat-thread-meta">
+                                    <span>09:28</span>
+                                    <div class="chat-thread-badge">3</div>
+                                </div>
+                            </div>
+                            <div class="chat-thread">
+                                <div class="chat-thread-avatar"><i data-feather="bookmark"></i></div>
+                                <div class="chat-thread-main">
+                                    <div class="chat-thread-name">系统通知</div>
+                                    <div class="chat-thread-snippet">当前界面图标全部来自 Feather，未使用 emoji 元素。</div>
+                                </div>
+                                <div class="chat-thread-meta">
+                                    <span>昨晚</span>
+                                    <div class="chat-thread-badge">2</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chat-panel" id="chat-panel-moments">
+                        <div class="chat-moment">
+                            <div class="chat-moment-header">
+                                <div class="chat-thread-avatar" id="chat-moment-avatar"><i data-feather="user"></i></div>
+                                <div class="chat-thread-main">
+                                    <div class="chat-thread-name">镜面动态</div>
+                                    <div class="chat-thread-snippet">今天 02:14</div>
+                                </div>
+                            </div>
+                            <div class="chat-moment-cover"><i data-feather="image" width="36" height="36"></i></div>
+                            <div class="chat-moment-text">这里作为朋友圈流，保留较大的留白、轻雾渐层和统一卡片节奏，用来展示图片、近况和收藏内容。</div>
+                            <div class="chat-moment-actions">
+                                <div class="chat-action-pill"><i data-feather="heart" width="14" height="14"></i><span>18</span></div>
+                                <div class="chat-action-pill"><i data-feather="message-circle" width="14" height="14"></i><span>6</span></div>
+                                <div class="chat-action-pill"><i data-feather="share-2" width="14" height="14"></i></div>
+                            </div>
+                        </div>
+                        <div class="chat-moment">
+                            <div class="chat-moment-header">
+                                <div class="chat-thread-avatar"><i data-feather="aperture"></i></div>
+                                <div class="chat-thread-main">
+                                    <div class="chat-thread-name">界面记录</div>
+                                    <div class="chat-thread-snippet">昨天</div>
+                                </div>
+                            </div>
+                            <div class="chat-moment-text">聊天、论坛、档案都统一成更干净的浅色玻璃系语言，按钮和头像位统一用线性图标，不混入表情元素。</div>
+                        </div>
+                    </div>
+
+                    <div class="chat-panel" id="chat-panel-profile">
+                        <div class="chat-profile-card">
+                            <div class="chat-profile-top">
+                                <div class="chat-profile-avatar" id="chat-profile-avatar" onclick="openForumAvatarPicker()"><i data-feather="user"></i></div>
+                                <div class="chat-thread-main">
+                                    <div class="chat-profile-name" id="chat-profile-name" onclick="openChatProfileEditor('name')">点击编辑昵称</div>
+                                    <div class="chat-profile-id" id="chat-profile-id" onclick="openChatProfileEditor('profileId')">CHAT PROFILE</div>
+                                </div>
+                            </div>
+                            <div class="chat-profile-grid">
+                                <div class="chat-stat">
+                                    <div class="chat-stat-num">24</div>
+                                    <div class="chat-stat-label">THREADS</div>
+                                </div>
+                                <div class="chat-stat">
+                                    <div class="chat-stat-num">08</div>
+                                    <div class="chat-stat-label">MOMENTS</div>
+                                </div>
+                                <div class="chat-stat">
+                                    <div class="chat-stat-num">96</div>
+                                    <div class="chat-stat-label">ARCHIVES</div>
+                                </div>
+                            </div>
+                            <div class="chat-profile-note" id="chat-profile-note-text" onclick="openChatProfileEditor('bio')">个人页会复用你在论坛里上传的头像和昵称，让聊天应用、论坛页和本地档案区保持一致的身份呈现。</div>
+                            <div class="chat-profile-details">
+                                <div class="chat-profile-detail" onclick="openChatProfileEditor('bio')">
+                                    <div class="chat-profile-detail-label">BIO</div>
+                                    <div class="chat-profile-detail-value" id="chat-profile-bio">还没有填写简介。</div>
+                                </div>
+                                <div class="chat-profile-detail" onclick="openChatProfileEditor('location')">
+                                    <div class="chat-profile-detail-label">LOCATION</div>
+                                    <div class="chat-profile-detail-value" id="chat-profile-location">未设置</div>
+                                </div>
+                                <div class="chat-profile-detail" onclick="openChatProfileEditor('email')">
+                                    <div class="chat-profile-detail-label">EMAIL</div>
+                                    <div class="chat-profile-detail-value" id="chat-profile-email">未填写</div>
+                                </div>
+                                <div class="chat-profile-detail" onclick="openChatProfileEditor('website')">
+                                    <div class="chat-profile-detail-label">LINK</div>
+                                    <div class="chat-profile-detail-value" id="chat-profile-website">未填写</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 帖子详情页面 -->
+        <div id="forum-post-screen">
+            <div class="settings-header">
+                <div class="back-btn" onclick="closePostDetail()"><i data-feather="chevron-left"></i></div>
+                <h2 style="font-weight: normal;">帖子详情</h2>
+            </div>
+            <div class="post-detail-content">
+                <div class="post-header">
+                    <div class="post-avatar forum-user-avatar"></div>
+                    <div class="post-meta">
+                        <div class="post-author forum-profile-name-output">Yu用户</div>
+                        <div class="post-time">10分钟前</div>
+                    </div>
+                </div>
+                <div class="post-content" style="font-size: 16px; margin-bottom: 20px;">今天天气真不错，分享一首好听的歌。大家最近在听什么呢？</div>
+                <div class="post-actions">
+                    <div class="post-action"><i data-feather="heart" width="18"></i> 12</div>
+                    <div class="post-action"><i data-feather="share-2" width="18"></i> 分享</div>
+                </div>
+            </div>
+            <h3 style="color: var(--text-color); font-weight: normal; margin-bottom: 15px; font-size: 16px;">评论 (2)</h3>
+            <div class="comment-section">
+                <div class="comment-item">
+                    <div style="font-weight: 600; margin-bottom: 5px;">路人甲</div>
+                    <div>最近在听周杰伦的老歌，太经典了！</div>
+                </div>
+                <div class="comment-item">
+                    <div style="font-weight: 600; margin-bottom: 5px;">音乐爱好者</div>
+                    <div>推荐《悬溺》，很有感觉。</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 论坛个人页面 -->
+        <div id="forum-profile-screen">
+            <div class="forum-profile-header">
+                <div class="back-btn" onclick="switchForumTab('home')"><i data-feather="chevron-left"></i></div>
+                <div class="forum-profile-header-tag">个人主页</div>
+            </div>
+            <div class="profile-bg-wrap">
+                <div class="profile-bg-new" onclick="openForumBackgroundPicker()"></div>
+                <div class="profile-avatar-new" onclick="openForumAvatarPicker()"><i data-feather="user" width="50" height="50"></i></div>
+            </div>
+            
+            <div class="profile-info-new">
+                <div class="profile-name" onclick="editProfile('name')">点击编辑昵称</div>
+                <div class="profile-id" onclick="editProfile('id')">ID: 点击编辑ID</div>
+                <div class="profile-stats" style="margin-bottom: 25px;">
+                    <div class="stat-item"><span class="stat-num">12</span><span class="stat-label">关注</span></div>
+                    <div class="stat-item"><span class="stat-num">5</span><span class="stat-label">粉丝</span></div>
+                    <div class="stat-item"><span class="stat-num">28</span><span class="stat-label">获赞</span></div>
+                </div>
+                <div class="profile-upload-hint">点击封面或头像可更换图片；点昵称、ID、简介或资料项可直接编辑。</div>
+            </div>
+
+            <div class="profile-content-wrap">
+                <div class="profile-summary-card">
+                    <div class="profile-summary-top">
+                        <div>
+                            <div class="profile-summary-name forum-profile-name-output">点击编辑昵称</div>
+                            <div class="profile-summary-id" id="forum-profile-summary-id">ID: 点击编辑ID</div>
+                        </div>
+                        <div class="profile-summary-badge">PROFILE</div>
+                    </div>
+                    <div class="profile-summary-bio" id="forum-profile-bio" onclick="openChatProfileEditor('bio')">还没有填写简介，点简介就可以补充签名与近况。</div>
+                    <div class="profile-detail-grid">
+                        <div class="profile-detail-item" onclick="openChatProfileEditor('location')">
+                            <span>位置</span>
+                            <strong id="forum-profile-location">未设置</strong>
+                        </div>
+                        <div class="profile-detail-item" onclick="openChatProfileEditor('email')">
+                            <span>邮箱</span>
+                            <strong id="forum-profile-email">未填写</strong>
+                        </div>
+                        <div class="profile-detail-item" onclick="openChatProfileEditor('website')">
+                            <span>链接</span>
+                            <strong id="forum-profile-website">未填写</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-edit-card">
+                    <div class="profile-edit-head">
+                        <div>
+                            <div class="profile-summary-name" style="font-size: 18px; margin-bottom: 6px;">资料快捷编辑</div>
+                            <div class="profile-summary-id">论坛页与聊天页共享同一套头像、昵称、签名和联系方式。</div>
+                        </div>
+                        <div class="profile-summary-badge">SYNC</div>
+                    </div>
+                    <div class="profile-form-actions">
+                        <button class="btn" type="button" onclick="openChatProfileEditor()">编辑资料</button>
+                        <button class="btn" type="button" onclick="openForumBackgroundPicker()">更换封面</button>
+                    </div>
+                </div>
+
+                <div class="profile-tabs">
+                    <div class="profile-tab active">我的动态</div>
+                    <div class="profile-tab">收藏</div>
+                </div>
+
+                <div class="post-card" style="text-align: center; padding: 30px; opacity: 0.6; cursor: default; box-shadow: var(--neu-out);">
+                    暂无动态
+                </div>
+            </div>
+        </div>
+
+        <!-- 主题页面 -->
+        <div id="theme-screen">
+            <div class="settings-header">
+                <div class="back-btn" onclick="closeThemeSettings()"><i data-feather="chevron-left"></i></div>
+                <h2 style="font-weight: normal;">主题</h2>
+            </div>
+            <div class="settings-list">
+                <div class="setting-item" onclick="toggleSettingItem(this)">
+                    <div class="setting-item-header">
+                        <div class="setting-item-left"><i data-feather="smartphone" class="thin-icon"></i><span>锁屏预览</span></div>
+                        <div class="setting-toggle"><i data-feather="chevron-down" class="thin-icon"></i></div>
+                    </div>
+                    <div class="setting-item-content">您可以在此预览并设置锁屏界面的样式与组件。</div>
+                </div>
+                <div class="setting-item" onclick="toggleSettingItem(this)">
+                    <div class="setting-item-header">
+                        <div class="setting-item-left"><i data-feather="image" class="thin-icon"></i><span>壁纸定制</span></div>
+                        <div class="setting-toggle"><i data-feather="chevron-down" class="thin-icon"></i></div>
+                    </div>
+                    <div class="setting-item-content">选择您喜欢的图片作为桌面或锁屏壁纸。</div>
+                </div>
+                <div class="setting-item" onclick="toggleSettingItem(this)">
+                    <div class="setting-item-header">
+                        <div class="setting-item-left"><i data-feather="grid" class="thin-icon"></i><span>更换图标</span></div>
+                        <div class="setting-toggle"><i data-feather="chevron-down" class="thin-icon"></i></div>
+                    </div>
+                    <div class="setting-item-content">支持一键替换全局应用图标风格。</div>
+                </div>
+                <div class="setting-item" onclick="toggleSettingItem(this)">
+                    <div class="setting-item-header">
+                        <div class="setting-item-left"><i data-feather="type" class="thin-icon"></i><span>文字与UI</span></div>
+                        <div class="setting-toggle"><i data-feather="chevron-down" class="thin-icon"></i></div>
+                    </div>
+                    <div class="setting-item-content">调整系统全局字体大小、字重及色彩基调。</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 设置页面 -->
+        <div id="settings-screen">
+            <div class="settings-header">
+                <div class="back-btn" onclick="closeSettings()"><i data-feather="chevron-left"></i></div>
+                <h2 style="font-weight: normal;">设置</h2>
+            </div>
+            <div class="settings-list">
+                <div class="setting-item" onclick="toggleSettingItem(this)">
+                    <div class="setting-item-header">
+                        <div class="setting-item-left"><i data-feather="message-square"></i><span>API 聊天</span></div>
+                        <div class="setting-toggle"><i data-feather="chevron-down"></i></div>
+                    </div>
+                    <div class="setting-item-content" onclick="handleApiChatContentClick(event)">
+                        <div class="api-chat-config">
+                            <div class="api-chat-toolbar">
+                                <input id="api-chat-preset-name" class="input-field" maxlength="30" placeholder="预设名称">
+                                <button id="api-chat-top-save-btn" class="api-chat-icon-btn" type="button" title="保存预设" aria-label="保存预设" onclick="saveApiChatSettings(event)">
+                                    <i data-feather="save"></i>
+                                </button>
+                                <button id="api-chat-delete-btn" class="api-chat-icon-btn danger" type="button" title="删除预设" aria-label="删除预设" onclick="deleteApiChatSettings(event)">
+                                    <i data-feather="trash-2"></i>
+                                </button>
+                            </div>
+                            <label class="api-chat-row">
+                                <span class="api-chat-label">API 接口网址</span>
+                                <input id="api-chat-api-url" class="input-field" placeholder="例如：https://api.openai.com/v1 或 http://127.0.0.1:11434" oninput="handleApiChatUrlInput(event)">
+                            </label>
+                            <div class="api-chat-hint" id="api-chat-compatibility-hint">支持外网 API、国内 API 与自营 API，自动兼容 OpenAI 风格 `/models`，并额外尝试自营服务常见的 `/api/tags`。</div>
+                            <label class="api-chat-row">
+                                <span class="api-chat-label">API 密钥</span>
+                                <div class="api-chat-secret-wrap">
+                                    <input id="api-chat-api-key" class="input-field" type="password" autocomplete="off" placeholder="输入 API Key">
+                                    <button id="api-chat-toggle-key-btn" class="api-chat-eye-btn" type="button" aria-label="显示或隐藏 API 密钥" onclick="toggleApiChatKeyVisibility(event)">
+                                        <i data-feather="eye"></i>
+                                    </button>
+                                </div>
+                            </label>
+                            <div class="api-chat-row">
+                                <span class="api-chat-label">模型</span>
+                                <div class="api-chat-model-combobox" id="api-chat-model-combobox">
+                                    <div class="api-chat-inline">
+                                        <input id="api-chat-model" class="input-field" placeholder="可手动填写，或点击右侧拉取" oninput="handleApiChatModelInput(event)">
+                                        <button id="api-chat-pull-models-btn" class="btn" type="button" onclick="pullApiChatModels(event)">拉取</button>
+                                    </div>
+                                </div>
+                                <div class="api-chat-hint api-chat-model-status-clickable" id="api-chat-model-status" onclick="openApiChatModelPicker(event)">模型列表拉取失败时仍可手动填写，适配外网、国内与自营兼容接口。</div>
+                            </div>
+                            <div class="api-chat-row">
+                                <div class="api-chat-range-head">
+                                    <span class="api-chat-label">温度</span>
+                                    <strong id="api-chat-temperature-value" class="api-chat-range-value">1.0</strong>
+                                </div>
+                                <input id="api-chat-temperature" class="api-chat-range" type="range" min="0" max="2" step="0.1" value="1" oninput="handleApiChatTemperatureInput(event)">
+                            </div>
+                            <label class="api-chat-row">
+                                <span class="api-chat-label">每轮回复携带的上下文数量</span>
+                                <input id="api-chat-context-count" class="input-field" type="number" step="1" placeholder="20">
+                                <div class="api-chat-hint">默认 20，不设置前端最小值或最大值；当前输入会自动暂存到本地，点保存后写入 IndexedDB 预设。</div>
+                            </label>
+                            <button id="api-chat-save-btn" class="btn" type="button" onclick="saveApiChatSettings(event)">保存</button>
+                            <div id="api-chat-status" class="api-chat-status">当前输入会自动暂存到本地；点击保存后会写入本地 IndexedDB 预设，不会自动上传到第三方服务。</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="setting-item" onclick="toggleSettingItem(this)">
+                    <div class="setting-item-header">
+                        <div class="setting-item-left"><i data-feather="mic"></i><span>API 语音</span></div>
+                        <div class="setting-toggle"><i data-feather="chevron-down"></i></div>
+                    </div>
+                    <div class="setting-item-content" onclick="handleApiVoiceContentClick(event)">
+                        <div class="api-chat-config">
+                            <div class="api-chat-toolbar">
+                                <input id="api-voice-preset-name" class="input-field" maxlength="30" placeholder="预设名称">
+                                <button id="api-voice-top-save-btn" class="api-chat-icon-btn" type="button" title="保存预设" aria-label="保存预设" onclick="saveApiVoiceSettings(event)">
+                                    <i data-feather="save"></i>
+                                </button>
+                                <button id="api-voice-delete-btn" class="api-chat-icon-btn danger" type="button" title="删除预设" aria-label="删除预设" onclick="deleteApiVoiceSettings(event)">
+                                    <i data-feather="trash-2"></i>
+                                </button>
+                            </div>
+                            <div class="api-chat-row">
+                                <span class="api-chat-label">版本</span>
+                                <div class="worldbook-option-row">
+                                    <button id="api-voice-edition-domestic" class="worldbook-option api-voice-option" type="button" data-value="domestic" onclick="setApiVoiceEditionSelection('domestic', event)">国内版</button>
+                                    <button id="api-voice-edition-overseas" class="worldbook-option api-voice-option" type="button" data-value="overseas" onclick="setApiVoiceEditionSelection('overseas', event)">海外版</button>
+                                </div>
+                            </div>
+                            <label class="api-chat-row">
+                                <span class="api-chat-label">API 密钥</span>
+                                <div class="api-chat-secret-wrap">
+                                    <input id="api-voice-api-key" class="input-field" type="password" autocomplete="off" placeholder="输入 API Key">
+                                    <button id="api-voice-toggle-key-btn" class="api-chat-eye-btn" type="button" aria-label="显示或隐藏 API 语音密钥" onclick="toggleApiVoiceKeyVisibility(event)">
+                                        <i data-feather="eye"></i>
+                                    </button>
+                                </div>
+                            </label>
+                            <label class="api-chat-row">
+                                <span class="api-chat-label">Group id</span>
+                                <input id="api-voice-group-id" class="input-field" autocomplete="off" placeholder="输入 Group id">
+                            </label>
+                            <div class="api-chat-row">
+                                <div class="api-chat-range-head">
+                                    <span class="api-chat-label">语速</span>
+                                    <strong id="api-voice-speed-value" class="api-chat-range-value">1.0</strong>
+                                </div>
+                                <input id="api-voice-speed" class="api-chat-range" type="range" min="0.2" max="3" step="0.1" value="1" oninput="handleApiVoiceSpeedInput(event)">
+                            </div>
+                            <label class="api-chat-row">
+                                <span class="api-chat-label">语言</span>
+                                <input id="api-voice-language" class="input-field" list="api-voice-language-list" autocomplete="off" placeholder="例如：zh-CN / en-US">
+                                <datalist id="api-voice-language-list">
+                                    <option value="zh-CN"></option>
+                                    <option value="en-US"></option>
+                                    <option value="ja-JP"></option>
+                                    <option value="ko-KR"></option>
+                                    <option value="yue-CN"></option>
+                                </datalist>
+                            </label>
+                            <button id="api-voice-save-btn" class="btn" type="button" onclick="saveApiVoiceSettings(event)">保存</button>
+                            <div id="api-voice-status" class="api-chat-status">当前输入会自动暂存到本地；点击保存后会写入本地 IndexedDB 预设，不会自动上传到第三方服务。</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="setting-item" onclick="toggleSettingItem(this)">
+                    <div class="setting-item-header">
+                        <div class="setting-item-left"><i data-feather="shield"></i><span>安全设置</span></div>
+                        <div class="setting-toggle"><i data-feather="chevron-down"></i></div>
+                    </div>
+                    <div class="setting-item-content" onclick="handleSecurityContentClick(event)">
+                        <div class="security-config">
+                            <div class="security-top">
+                                <div class="security-copy-wrap">
+                                    <div class="security-title">锁屏密码</div>
+                                    <div class="security-copy" id="security-switch-copy">已开启，解锁需输入 4 位数字密码。</div>
+                                </div>
+                                <button id="security-enabled-btn" class="security-switch-btn" type="button" onclick="toggleSecurityEnabled(event)">已开启</button>
+                            </div>
+                            <div class="security-grid">
+                                <label class="api-chat-row">
+                                    <span class="api-chat-label">当前密码</span>
+                                    <input id="security-current-password" class="input-field" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="修改或关闭时填写" oninput="sanitizePasswordInput(event)">
+                                </label>
+                                <label class="api-chat-row">
+                                    <span class="api-chat-label">新密码</span>
+                                    <input id="security-new-password" class="input-field" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="4 位数字，不填则沿用当前密码" oninput="sanitizePasswordInput(event)">
+                                </label>
+                                <label class="api-chat-row">
+                                    <span class="api-chat-label">确认新密码</span>
+                                    <input id="security-confirm-password" class="input-field" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="再次输入 4 位数字" oninput="sanitizePasswordInput(event)">
+                                </label>
+                            </div>
+                            <div class="profile-form-actions security-actions">
+                                <button class="btn" type="button" onclick="saveSecuritySettings(event)">保存安全设置</button>
+                                <button class="btn" type="button" onclick="lockDeviceNow(event)">立即锁屏</button>
+                            </div>
+                            <div id="security-status" class="api-chat-status">当前锁屏密码默认开启，可随时关闭或改成新的 4 位数字密码。</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="setting-item" onclick="toggleSettingItem(this)">
+                    <div class="setting-item-header">
+                        <div class="setting-item-left"><i data-feather="database"></i><span>数据管理</span></div>
+                        <div class="setting-toggle"><i data-feather="chevron-down"></i></div>
+                    </div>
+                    <div class="setting-item-content" onclick="handleDataManagementContentClick(event)">
+                        <div class="data-management-config">
+                            <div class="data-management-toolbar">
+                                <button class="btn data-mini-btn" type="button" onclick="setAllDataScopeSelection(true, event)">全选</button>
+                                <button class="btn data-mini-btn" type="button" onclick="setAllDataScopeSelection(false, event)">全不选</button>
+                            </div>
+                            <div class="data-scope-grid">
+                                <label class="data-scope-card">
+                                    <input id="data-scope-music" class="data-scope-checkbox" type="checkbox" checked>
+                                    <div class="data-scope-copy">
+                                        <strong>音乐</strong>
+                                        <span id="data-scope-summary-music">0 条</span>
+                                    </div>
+                                </label>
+                                <label class="data-scope-card">
+                                    <input id="data-scope-worldbook" class="data-scope-checkbox" type="checkbox" checked>
+                                    <div class="data-scope-copy">
+                                        <strong>世界书</strong>
+                                        <span id="data-scope-summary-worldbook">0 条</span>
+                                    </div>
+                                </label>
+                                <label class="data-scope-card">
+                                    <input id="data-scope-archiveProfiles" class="data-scope-checkbox" type="checkbox" checked>
+                                    <div class="data-scope-copy">
+                                        <strong>档案</strong>
+                                        <span id="data-scope-summary-archiveProfiles">0 条</span>
+                                    </div>
+                                </label>
+                                <label class="data-scope-card">
+                                    <input id="data-scope-forumProfile" class="data-scope-checkbox" type="checkbox" checked>
+                                    <div class="data-scope-copy">
+                                        <strong>论坛资料</strong>
+                                        <span id="data-scope-summary-forumProfile">未保存</span>
+                                    </div>
+                                </label>
+                                <label class="data-scope-card">
+                                    <input id="data-scope-apiChatSettings" class="data-scope-checkbox" type="checkbox" checked>
+                                    <div class="data-scope-copy">
+                                        <strong>API 聊天</strong>
+                                        <span id="data-scope-summary-apiChatSettings">未保存</span>
+                                    </div>
+                                </label>
+                                <label class="data-scope-card">
+                                    <input id="data-scope-apiVoiceSettings" class="data-scope-checkbox" type="checkbox" checked>
+                                    <div class="data-scope-copy">
+                                        <strong>API 语音</strong>
+                                        <span id="data-scope-summary-apiVoiceSettings">未保存</span>
+                                    </div>
+                                </label>
+                                <label class="data-scope-card">
+                                    <input id="data-scope-securitySettings" class="data-scope-checkbox" type="checkbox" checked>
+                                    <div class="data-scope-copy">
+                                        <strong>安全设置</strong>
+                                        <span id="data-scope-summary-securitySettings">默认开启</span>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="profile-form-actions data-management-actions">
+                                <button class="btn" type="button" onclick="exportSelectedData(event)">导出已选</button>
+                                <button class="btn" type="button" onclick="triggerDataImport(event)">导入已选</button>
+                                <button class="btn btn-danger" type="button" onclick="clearSelectedData(event)">清空已选</button>
+                            </div>
+                            <input id="data-import-file" class="file-input" type="file" accept=".json,application/json" onchange="handleDataImportFile(event)">
+                            <div id="data-management-status" class="api-chat-status">勾选需要操作的数据类型后，可批量导出、导入或清空。导出文件名格式为 Yu-日期-时间.json。</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="setting-item" onclick="toggleSettingItem(this)">
+                    <div class="setting-item-header">
+                        <div class="setting-item-left"><i data-feather="alert-circle"></i><span>免责声明</span></div>
+                        <div class="setting-toggle"><i data-feather="chevron-down"></i></div>
+                    </div>
+                    <div class="setting-item-content" onclick="handleLegalContentClick(event)">
+                        <div class="legal-config">
+                            <div class="legal-summary-card">
+                                <div class="legal-summary-title">使用前须知</div>
+                                <div class="legal-summary-copy">本应用仅提供本地创作、整理与展示能力。后续如接入成人向、露骨或其他敏感内容功能，用户需自行确认年龄、适用法律与内容边界。</div>
+                            </div>
+                            <div class="legal-summary-card">
+                                <div class="legal-summary-title">版权与内容责任</div>
+                                <div class="legal-summary-copy">用户上传、导入、生成、传播的文本、图片、音频及衍生内容，均应具备合法来源或授权，不得侵犯他人著作权、肖像权、商标权及其他合法权益。</div>
+                            </div>
+                            <div class="profile-form-actions legal-actions">
+                                <button class="btn" type="button" onclick="openLegalModal('disclaimer', event)">免责协议</button>
+                                <button class="btn" type="button" onclick="openLegalModal('copyright', event)">版权保护</button>
+                            </div>
+                            <div class="api-chat-status">完整协议不会自动弹出，需在此处主动点击查看。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 世界书页面 -->
+        <div id="worldbook-screen">
+            <div class="settings-header">
+                <div class="back-btn" onclick="closeWorldbook()"><i data-feather="chevron-left"></i></div>
+                <h2 style="font-weight: normal; flex: 1;">世界书</h2>
+                <div class="header-action-btn" onclick="openWorldbookEditor()"><i data-feather="plus"></i></div>
+            </div>
+            <div class="worldbook-list" id="worldbook-list"></div>
+        </div>
+
+        <!-- 世界书编辑页面 -->
+        <div id="worldbook-editor-screen">
+            <div class="settings-header">
+                <div class="back-btn" onclick="closeWorldbookEditor()"><i data-feather="chevron-left"></i></div>
+                <h2 id="worldbook-editor-title" style="font-weight: normal;">新建条目</h2>
+            </div>
+            <div class="worldbook-form">
+                <div class="worldbook-field">
+                    <div class="worldbook-subtitle">词条标题</div>
+                    <input type="text" id="worldbook-title" class="input-field" placeholder="请输入词条标题">
+                </div>
+
+                <div class="worldbook-field">
+                    <div class="worldbook-subtitle">作用范围</div>
+                    <div class="worldbook-option-row">
+                        <div class="worldbook-option active" data-group="scope" data-value="global" onclick="setWorldbookOption('scope', 'global')">全局</div>
+                        <div class="worldbook-option" data-group="scope" data-value="character" onclick="setWorldbookOption('scope', 'character')">角色</div>
+                    </div>
+                </div>
+
+                <div class="worldbook-field">
+                    <div class="worldbook-subtitle">生效方式</div>
+                    <div class="worldbook-option-row">
+                        <div class="worldbook-option active" data-group="triggerMode" data-value="always" onclick="setWorldbookOption('triggerMode', 'always')">始终生效</div>
+                        <div class="worldbook-option" data-group="triggerMode" data-value="keyword" onclick="setWorldbookOption('triggerMode', 'keyword')">关键词生效</div>
+                    </div>
+                    <div class="worldbook-keywords-wrap" id="worldbook-keywords-field" style="display: none;">
+                        <input type="text" id="worldbook-keywords" class="input-field" placeholder="请输入关键词，多个关键词用逗号分隔">
+                    </div>
+                </div>
+
+                <div class="worldbook-field">
+                    <div class="worldbook-subtitle">注入位置</div>
+                    <div class="worldbook-option-row">
+                        <div class="worldbook-option active" data-group="injectPosition" data-value="before" onclick="setWorldbookOption('injectPosition', 'before')">前</div>
+                        <div class="worldbook-option" data-group="injectPosition" data-value="middle" onclick="setWorldbookOption('injectPosition', 'middle')">中</div>
+                        <div class="worldbook-option" data-group="injectPosition" data-value="after" onclick="setWorldbookOption('injectPosition', 'after')">后</div>
+                    </div>
+                </div>
+
+                <div class="worldbook-field">
+                    <div class="worldbook-subtitle">设定内容</div>
+                    <textarea id="worldbook-content" class="input-field worldbook-textarea" placeholder="请输入条目设定内容"></textarea>
+                </div>
+
+                <div class="worldbook-editor-actions">
+                    <button class="btn" onclick="saveWorldbookEntry()">保存</button>
+                    <button class="btn btn-danger" id="worldbook-delete-entry-btn" onclick="deleteCurrentWorldbookEntry()" style="display: none;">删除条目</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 档案页面 -->
+        <div id="archive-screen">
+            <div class="settings-header">
+                <div class="back-btn" onclick="closeArchiveApp()"><i data-feather="chevron-left"></i></div>
+                <div class="archive-title-wrap" style="flex: 1;">
+                    <h2 style="font-weight: normal;">档案</h2>
+                    <div class="archive-header-meta" id="archive-screen-meta">CHAR</div>
+                </div>
+                <div class="header-action-icon-btn" onclick="openArchiveEditor()"><i data-feather="plus"></i></div>
+            </div>
+            <div class="archive-list" id="archive-list"></div>
+            <div class="dock archive-dock">
+                <div class="dock-icon active" data-tab="char" onclick="switchArchiveTab('char')"><span>CHAR</span></div>
+                <div class="dock-icon" data-tab="npc" onclick="switchArchiveTab('npc')"><span>NPC</span></div>
+                <div class="dock-icon" data-tab="user" onclick="switchArchiveTab('user')"><span>USER</span></div>
+            </div>
+        </div>
+
+        <!-- 档案编辑页面 -->
+        <div id="archive-editor-screen">
+            <div class="settings-header">
+                <div class="back-btn" onclick="closeArchiveEditor()"><i data-feather="chevron-left"></i></div>
+                <div class="archive-title-wrap" style="flex: 1;">
+                    <h2 id="archive-editor-title" style="font-weight: normal;">新建档案</h2>
+                    <div class="archive-header-meta" id="archive-editor-meta">CHAR</div>
+                </div>
+            </div>
+            <div class="archive-form">
+                <div class="archive-field archive-avatar-panel">
+                    <div class="archive-avatar" onclick="openArchiveImagePicker()">
+                        <div class="archive-avatar-art" id="archive-image-preview">
+                            <div class="archive-avatar-label">CHAR</div>
+                        </div>
+                        <div class="archive-avatar-copy">
+                            <div class="archive-avatar-series" id="archive-preview-series">CHAR EXHIBIT</div>
+                            <div class="archive-avatar-name" id="archive-preview-name">未命名角色</div>
+                            <div class="archive-avatar-role" id="archive-preview-gender">待补充设定</div>
+                            <div class="archive-avatar-status" id="archive-preview-status">点击展览卡选择本地角色图</div>
+                        </div>
+                    </div>
+                    <div class="archive-avatar-caption">点击上方长方形展览卡，从本地选择角色图并保存到档案</div>
+                </div>
+
+                <div class="archive-field">
+                    <div class="archive-subtitle">姓名</div>
+                    <input type="text" id="archive-name" class="input-field" placeholder="请输入姓名" oninput="syncArchivePreviewText()">
+                </div>
+
+                <div class="archive-field">
+                    <div class="archive-subtitle">性别</div>
+                    <input type="text" id="archive-gender" class="input-field" placeholder="请输入性别" oninput="syncArchivePreviewText()">
+                </div>
+
+                <div class="archive-field">
+                    <div class="archive-subtitle">设定内容</div>
+                    <textarea id="archive-content" class="input-field archive-textarea" placeholder="请输入设定内容"></textarea>
+                </div>
+
+                <div class="archive-editor-actions">
+                    <button class="btn" onclick="saveArchiveProfile()">保存</button>
+                    <button class="btn btn-danger" id="archive-delete-entry-btn" onclick="deleteCurrentArchiveProfile()" style="display: none;">删除档案</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 列表弹窗 -->
+        <div id="music-list-modal" class="modal-overlay" onclick="closeMusicListModal(event)">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <div class="modal-header-ui">
+                    <h3>音乐列表</h3>
+                    <div class="modal-close-btn" onclick="closeMusicListModal(null)"><i data-feather="x"></i></div>
+                </div>
+                <div class="music-list-container" id="music-list-container"></div>
+                <div class="modal-footer"><button class="btn" onclick="openAddMusicModal()">添加音乐</button></div>
+            </div>
+        </div>
+
+        <!-- 添加弹窗 -->
+        <div id="add-music-modal" class="modal-overlay" onclick="closeAddMusicModal(event)">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <div class="modal-header-ui">
+                    <h3>添加歌曲</h3>
+                    <div class="modal-close-btn" onclick="closeAddMusicModal(null)"><i data-feather="x"></i></div>
+                </div>
+                <div class="add-music-form">
+                    <div class="form-row">
+                        <input type="text" id="add-title" class="input-field" placeholder="歌曲标题">
+                        <input type="text" id="add-singer" class="input-field" placeholder="歌手">
+                    </div>
+                    <div class="form-row">
+                        <input type="text" id="add-url" class="input-field" placeholder="网络音频URL(或右侧导入)">
+                        <label class="icon-btn"><i data-feather="upload"></i>
+                            <input type="file" class="file-input" accept="audio/*" onchange="handleFileSelect(event, 'audio')">
+                        </label>
+                    </div>
+                    <div class="form-row">
+                        <input type="text" id="add-cover" class="input-field" placeholder="封面图片URL(或右侧导入)">
+                        <label class="icon-btn"><i data-feather="image"></i>
+                            <input type="file" class="file-input" accept="image/*" onchange="handleFileSelect(event, 'image')">
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer"><button class="btn" onclick="saveMusic()">保存并加入歌单</button></div>
+            </div>
+        </div>
+
+        <div id="profile-editor-modal" class="modal-overlay" onclick="closeChatProfileEditor(event)">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <div class="modal-header-ui">
+                    <h3>编辑资料</h3>
+                    <div class="modal-close-btn" onclick="closeChatProfileEditor(null)"><i data-feather="x"></i></div>
+                </div>
+                <div class="add-music-form">
+                    <div class="chat-profile-actions">
+                        <button class="btn" onclick="openForumAvatarPicker()">更换头像</button>
+                        <button class="btn" onclick="openForumBackgroundPicker()">更换背景图</button>
+                    </div>
+                    <div class="chat-profile-form-grid">
+                        <label class="profile-field">
+                            <span>昵称</span>
+                            <input id="chat-profile-form-name" class="input-field" maxlength="20" placeholder="输入昵称">
+                        </label>
+                        <label class="profile-field">
+                            <span>ID</span>
+                            <input id="chat-profile-form-id" class="input-field" maxlength="24" placeholder="输入展示 ID">
+                        </label>
+                        <label class="profile-field">
+                            <span>位置</span>
+                            <input id="chat-profile-form-location" class="input-field" maxlength="30" placeholder="例如：上海 / Hangzhou">
+                        </label>
+                        <label class="profile-field">
+                            <span>邮箱</span>
+                            <input id="chat-profile-form-email" class="input-field" type="email" maxlength="50" placeholder="name@example.com">
+                        </label>
+                        <label class="profile-field" style="grid-column: 1 / -1;">
+                            <span>链接</span>
+                            <input id="chat-profile-form-website" class="input-field" maxlength="80" placeholder="主页 / 社媒 / 作品集链接">
+                        </label>
+                    </div>
+                    <label class="profile-field">
+                        <span>简介 / 签名</span>
+                        <textarea id="chat-profile-form-bio" class="input-field profile-textarea" maxlength="180" placeholder="写一段简介、签名或近况"></textarea>
+                    </label>
+                </div>
+                <div class="modal-footer"><button id="chat-profile-save-btn" class="btn" onclick="saveChatProfileForm()">保存资料</button></div>
+            </div>
+        </div>
+
+        <div id="chat-role-picker-screen" class="chat-subscreen">
+            <div class="chat-subscreen-header">
+                <div class="back-btn" onclick="closeChatRolePicker(null)"><i data-feather="chevron-left"></i></div>
+                <div class="chat-subscreen-header-copy">
+                    <div class="chat-subscreen-title" id="chat-role-picker-title">添加角色</div>
+                    <div class="chat-subscreen-subtitle">关联角色、用户身份牌与世界书</div>
+                </div>
+            </div>
+            <div class="chat-subscreen-body">
+                <div class="chat-role-config-section">
+                    <div class="chat-role-config-head">
+                        <div>
+                            <div class="chat-role-config-name">角色卡</div>
+                            <div class="chat-role-config-copy">只显示 CHAR / NPC 档案，作为对话对象加入消息页。</div>
+                        </div>
+                        <div class="chat-role-config-status" id="chat-role-config-role-status">未选择</div>
+                    </div>
+                    <div id="chat-role-picker-list" class="chat-role-config-list"></div>
+                </div>
+
+                <div class="chat-role-config-section">
+                    <div class="chat-role-config-head">
+                        <div>
+                            <div class="chat-role-config-name">用户身份牌</div>
+                            <div class="chat-role-config-copy">从 USER 档案里选一张身份牌，作为“你”的固定设定。</div>
+                        </div>
+                        <div class="chat-role-config-status" id="chat-role-config-identity-status">未选择</div>
+                    </div>
+                    <div id="chat-role-identity-picker-list" class="chat-role-config-list"></div>
+                </div>
+
+                <div class="chat-role-config-section">
+                    <div class="chat-role-config-head">
+                        <div>
+                            <div class="chat-role-config-name">世界书条目</div>
+                            <div class="chat-role-config-copy">至少绑定 1 条世界书，聊天时会直接写进提示词与强制规则。</div>
+                        </div>
+                        <div class="chat-role-config-status" id="chat-role-config-worldbook-status">0 条</div>
+                    </div>
+                    <div id="chat-role-worldbook-picker-list" class="chat-role-config-list"></div>
+                </div>
+
+                <div class="chat-role-config-summary">
+                    <div class="chat-role-config-summary-title">当前绑定</div>
+                    <div class="chat-role-config-summary-grid">
+                        <div class="chat-role-config-summary-card">
+                            <span>角色</span>
+                            <strong id="chat-role-config-summary-role">未选择</strong>
+                        </div>
+                        <div class="chat-role-config-summary-card">
+                            <span>身份牌</span>
+                            <strong id="chat-role-config-summary-identity">未选择</strong>
+                        </div>
+                        <div class="chat-role-config-summary-card">
+                            <span>世界书</span>
+                            <strong id="chat-role-config-summary-worldbook">0 条</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="chat-role-config-status" class="api-chat-status">创建会话时会同时绑定角色、用户身份牌和至少 1 条世界书。</div>
+                <div class="chat-role-config-actions">
+                    <button class="btn" id="chat-role-config-confirm-btn" type="button" onclick="confirmChatRoleConfig()">加入消息页并进入聊天</button>
+                    <button class="btn btn-danger" id="chat-role-delete-thread-btn" type="button" onclick="deleteCurrentChatRoleThread()" style="display: none;">删除聊天</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="chat-role-thread-screen" class="chat-subscreen">
+            <div class="chat-subscreen-header">
+                <div class="back-btn" onclick="closeChatRoleThread(null)"><i data-feather="chevron-left"></i></div>
+                <div class="chat-subscreen-header-copy">
+                    <div class="chat-subscreen-title" id="chat-role-thread-title">角色会话</div>
+                    <div id="chat-role-thread-subtitle" class="chat-subscreen-subtitle">档案角色聊天</div>
+                </div>
+                <div class="header-action-icon-btn" onclick="openCurrentChatRoleConfig()"><i data-feather="sliders"></i></div>
+            </div>
+            <div class="chat-subscreen-body chat-role-thread-page-layout">
+                <div class="chat-role-thread-hero">
+                    <div class="chat-role-thread-hero-top">
+                        <div class="chat-thread-avatar" id="chat-role-thread-avatar"><i data-feather="user"></i></div>
+                        <div class="chat-role-thread-hero-copy">
+                            <div class="chat-role-thread-hero-title" id="chat-role-thread-hero-name">角色会话</div>
+                            <div class="chat-role-thread-hero-subtitle" id="chat-role-thread-hero-summary">档案角色聊天</div>
+                        </div>
+                    </div>
+                    <div class="chat-role-thread-association-grid">
+                        <div class="chat-role-thread-association-card">
+                            <span>用户身份牌</span>
+                            <strong id="chat-role-thread-identity">未关联</strong>
+                        </div>
+                        <div class="chat-role-thread-association-card">
+                            <span>世界书条目</span>
+                            <strong id="chat-role-thread-worldbook-count">0 条</strong>
+                        </div>
+                    </div>
+                    <div id="chat-role-thread-worldbooks" class="chat-role-thread-worldbooks"></div>
+                    <div class="chat-role-thread-runtime">
+                        <div class="chat-role-runtime-chip" id="chat-role-thread-model-chip">模型未设置</div>
+                        <div class="chat-role-runtime-chip" id="chat-role-thread-context-chip">上下文 0</div>
+                        <div class="chat-role-runtime-chip" id="chat-role-thread-temperature-chip">温度 1.0</div>
+                    </div>
+                </div>
+                <div id="chat-role-thread-status" class="api-chat-status">发送按钮和 Enter 都会发出消息；输入框为空时会让角色主动接一句。</div>
+                <div id="chat-role-thread-messages" class="chat-role-thread-messages chat-role-thread-page-messages"></div>
+            </div>
+            <div class="chat-role-thread-composer">
+                <textarea id="chat-role-thread-input" class="input-field chat-role-thread-input" rows="1" maxlength="1200" placeholder="输入内容，按 Enter 发送，Shift + Enter 换行；空输入会触发角色主动回复" oninput="handleChatRoleThreadInput(event)" onkeydown="handleChatRoleThreadInputKeydown(event)"></textarea>
+                <button id="chat-role-thread-send-btn" class="btn" type="button" onclick="sendChatRoleMessage()">发送</button>
+            </div>
+        </div>
+
+        <div id="api-chat-model-modal" class="modal-overlay" onclick="closeApiChatModelPicker(event)">
+            <div class="modal-content api-chat-model-modal-content" onclick="event.stopPropagation()">
+                <div class="modal-header-ui">
+                    <h3>模型选择</h3>
+                    <div class="modal-close-btn" onclick="closeApiChatModelPicker(null)"><i data-feather="x"></i></div>
+                </div>
+                <div class="api-chat-model-modal-copy">拉取成功后可点击状态文案打开这个选择框。这里是页面内弹层，不使用浏览器原生下拉。</div>
+                <div class="api-chat-model-preview">
+                    <div class="api-chat-model-preview-label">当前模型</div>
+                    <div id="api-chat-model-preview-name" class="api-chat-model-preview-name">尚未选择</div>
+                    <div id="api-chat-model-preview-meta" class="api-chat-model-preview-meta">请从下方已拉取模型中选择，或关闭后继续手动填写。</div>
+                </div>
+                <input id="api-chat-model-search" class="input-field" placeholder="筛选已拉取模型" oninput="handleApiChatModelSearchInput(event)">
+                <div id="api-chat-model-modal-list" class="api-chat-model-modal-list"></div>
+                <div class="modal-footer"><button class="btn" onclick="closeApiChatModelPicker(null)">关闭</button></div>
+            </div>
+        </div>
+
+        <div id="info-modal" class="modal-overlay" onclick="closeInfoModal(event)">
+            <div class="modal-content info-modal-content" onclick="event.stopPropagation()">
+                <div class="modal-header-ui">
+                    <h3 id="info-modal-title">说明</h3>
+                    <div class="modal-close-btn" onclick="closeInfoModal(null)"><i data-feather="x"></i></div>
+                </div>
+                <div id="info-modal-body" class="info-modal-body"></div>
+                <div class="modal-footer"><button class="btn" onclick="closeInfoModal(null)">我知道了</button></div>
+            </div>
+        </div>
+    </div>
+
+    <audio id="audio-player"></audio>
+    <input type="file" id="forum-avatar-input" class="file-input" accept="image/*" onchange="handleForumImageSelect(event, 'avatar')">
+    <input type="file" id="forum-bg-input" class="file-input" accept="image/*" onchange="handleForumImageSelect(event, 'background')">
+    <input type="file" id="archive-image-input" class="file-input" accept="image/*" onchange="handleArchiveImageSelect(event)">
+
+    <script src="script.js"></script>
+</body>
+</html>
+
+
