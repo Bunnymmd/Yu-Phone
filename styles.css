@@ -130,9 +130,11 @@
         /* 桌面 & 音乐组件 */
         #home-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            padding: 80px 20px 20px 20px; display: none; flex-direction: column;
+            padding: 80px 20px 124px 20px; display: none; flex-direction: column;
             opacity: 0; transition: opacity 0.5s ease;
+            overflow-x: hidden; overflow-y: auto;
         }
+        #home-screen::-webkit-scrollbar { display: none; }
 
         .widget-calendar {
             background-color: var(--bg-color); border-radius: 25px; box-shadow: var(--neu-out);
@@ -167,13 +169,61 @@
         }
 
         /* App 网格 & Dock */
-        .app-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 10px; }
-        .app-item { display: flex; flex-direction: column; align-items: center; gap: 10px; color: var(--text-color); font-size: 12px; }
-        .app-icon {
-            width: 55px; height: 55px; border-radius: 16px; background-color: var(--bg-color);
-            box-shadow: var(--neu-out); display: flex; justify-content: center; align-items: center; transition: all 0.2s; cursor: pointer;
+        .app-grid {
+            display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px 12px; padding: 8px 4px 12px; margin-top: 2px;
         }
-        .app-item:active .app-icon { box-shadow: var(--neu-in); }
+        .app-item {
+            appearance: none; -webkit-appearance: none; border: none; background: transparent; padding: 0;
+            display: flex; flex-direction: column; align-items: center; gap: 10px; color: var(--text-color); font-size: 12px;
+            cursor: pointer; text-align: center; touch-action: manipulation;
+        }
+        .app-item-copy {
+            display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0;
+        }
+        .app-item-label { font-size: 12px; letter-spacing: 0.6px; line-height: 1.1; }
+        .app-item-subtitle { font-size: 9px; letter-spacing: 1.8px; opacity: 0.52; line-height: 1; }
+        .app-icon {
+            --app-grad-start: rgba(255,255,255,0.94);
+            --app-grad-end: rgba(214,226,238,0.96);
+            --app-glow: rgba(128, 162, 199, 0.28);
+            --app-icon-color: #4f6881;
+            position: relative;
+            width: 62px; height: 62px; border-radius: 20px;
+            background: linear-gradient(145deg, rgba(255,255,255,0.88), rgba(228,236,244,0.96));
+            border: 1px solid rgba(255,255,255,0.76);
+            box-shadow:
+                10px 12px 22px rgba(166, 183, 201, 0.34),
+                -8px -8px 18px rgba(255,255,255,0.92);
+            display: flex; justify-content: center; align-items: center; transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer; overflow: hidden; isolation: isolate;
+        }
+        .app-icon::before {
+            content: '';
+            position: absolute; inset: 3px; border-radius: 17px;
+            background:
+                radial-gradient(circle at 28% 22%, rgba(255,255,255,0.96), transparent 40%),
+                linear-gradient(155deg, var(--app-grad-start), var(--app-grad-end));
+            z-index: 0;
+        }
+        .app-icon::after {
+            content: '';
+            position: absolute; left: 16px; right: 10px; bottom: -8px; height: 24px;
+            background: radial-gradient(circle, var(--app-glow), transparent 68%);
+            filter: blur(6px);
+            z-index: 0;
+        }
+        .app-icon svg {
+            position: relative; z-index: 1; width: 24px; height: 24px; color: var(--app-icon-color);
+        }
+        .app-item:active .app-icon,
+        .app-item:focus-visible .app-icon {
+            transform: translateY(1px) scale(0.98);
+            box-shadow:
+                inset 6px 6px 14px rgba(183, 197, 211, 0.42),
+                inset -6px -6px 14px rgba(255,255,255,0.85);
+        }
+        .app-item:focus-visible { outline: none; }
 
         .dock {
             position: absolute; bottom: 30px; left: 20px; right: 20px; height: 80px;
@@ -924,8 +974,9 @@
         }
         .chat-dock-btn {
             width: 46px; height: 46px; border-radius: 16px; background: rgba(242,247,251,0.96);
+            appearance: none; -webkit-appearance: none; border: none; padding: 0;
             box-shadow: var(--neu-out); display: flex; justify-content: center; align-items: center;
-            color: var(--text-color); cursor: pointer; transition: all 0.2s ease;
+            color: var(--text-color); cursor: pointer; transition: all 0.2s ease; touch-action: manipulation;
         }
         .chat-dock-btn.active { box-shadow: var(--neu-in); color: var(--accent-color); }
         .chat-dock-btn:active { box-shadow: var(--neu-in); }
@@ -1386,6 +1437,11 @@
                 min-height: 176px;
             }
             .archive-avatar-name { font-size: 20px; }
+            .app-grid { gap: 16px 10px; }
+            .app-icon {
+                width: 58px; height: 58px; border-radius: 18px;
+            }
+            .app-item-subtitle { letter-spacing: 1.4px; }
             .chat-dock-btn {
                 width: 42px; height: 42px; border-radius: 14px;
             }

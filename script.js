@@ -1,6 +1,7 @@
 ﻿feather.replace({ 'stroke-width': 1.2 });
 
         const FORUM_PROFILE_KEY = 'forumProfile';
+        const HOME_APPS_KEY = 'homeApps';
         const API_CHAT_SETTINGS_KEY = 'apiChatSettings';
         const API_VOICE_SETTINGS_KEY = 'apiVoiceSettings';
         const SECURITY_SETTINGS_KEY = 'securitySettings';
@@ -15,6 +16,7 @@
             { key: 'worldbook', label: '世界书', type: 'table' },
             { key: 'archiveProfiles', label: '档案', type: 'table' },
             { key: 'forumProfile', label: '论坛资料', type: 'setting', settingKey: FORUM_PROFILE_KEY },
+            { key: 'homeApps', label: '桌面应用', type: 'setting', settingKey: HOME_APPS_KEY },
             { key: 'apiChatSettings', label: 'API 聊天', type: 'setting', settingKey: API_CHAT_SETTINGS_KEY },
             { key: 'apiVoiceSettings', label: 'API 语音', type: 'setting', settingKey: API_VOICE_SETTINGS_KEY },
             { key: 'securitySettings', label: '安全设置', type: 'setting', settingKey: SECURITY_SETTINGS_KEY }
@@ -110,6 +112,21 @@
                     key: FORUM_PROFILE_KEY,
                     ...profile
                 });
+            }
+
+            async getHomeApps() {
+                return this.db.appSettings.get(HOME_APPS_KEY);
+            }
+
+            async saveHomeApps(settings) {
+                return this.db.appSettings.put({
+                    key: HOME_APPS_KEY,
+                    ...settings
+                });
+            }
+
+            async deleteHomeApps() {
+                return this.db.appSettings.delete(HOME_APPS_KEY);
             }
 
             async getApiChatSettings() {
@@ -227,6 +244,11 @@
                             case 'forumProfile':
                                 payload.forumProfile = await this.db.appSettings.get(FORUM_PROFILE_KEY);
                                 break;
+                            case 'homeApps':
+                                payload.homeApps = normalizeHomeAppsState(
+                                    await this.db.appSettings.get(HOME_APPS_KEY)
+                                );
+                                break;
                             case 'apiChatSettings':
                                 payload.apiChatSettings = await this.db.appSettings.get(API_CHAT_SETTINGS_KEY);
                                 break;
@@ -269,6 +291,12 @@
                                 if (payload.forumProfile) await this.db.appSettings.put({ ...payload.forumProfile, key: FORUM_PROFILE_KEY });
                                 else await this.db.appSettings.delete(FORUM_PROFILE_KEY);
                                 break;
+                            case 'homeApps':
+                                await this.db.appSettings.put({
+                                    ...normalizeHomeAppsState(payload.homeApps || createDefaultHomeAppsState()),
+                                    key: HOME_APPS_KEY
+                                });
+                                break;
                             case 'apiChatSettings':
                                 if (payload.apiChatSettings) await this.db.appSettings.put({ ...payload.apiChatSettings, key: API_CHAT_SETTINGS_KEY });
                                 else await this.db.appSettings.delete(API_CHAT_SETTINGS_KEY);
@@ -305,6 +333,9 @@
                             case 'forumProfile':
                                 await this.db.appSettings.delete(FORUM_PROFILE_KEY);
                                 break;
+                            case 'homeApps':
+                                await this.db.appSettings.delete(HOME_APPS_KEY);
+                                break;
                             case 'apiChatSettings':
                                 await this.db.appSettings.delete(API_CHAT_SETTINGS_KEY);
                                 break;
@@ -322,15 +353,18 @@
             }
 
             async getManagedDataStats() {
-                const [musicCount, worldbookCount, archiveCount, forumProfile, apiChatSettings, apiVoiceSettings, securitySettings] = await Promise.all([
+                const [musicCount, worldbookCount, archiveCount, forumProfile, homeApps, apiChatSettings, apiVoiceSettings, securitySettings] = await Promise.all([
                     this.db.music.count(),
                     this.db.worldbook.count(),
                     this.db.archiveProfiles.count(),
                     this.db.appSettings.get(FORUM_PROFILE_KEY),
+                    this.db.appSettings.get(HOME_APPS_KEY),
                     this.db.appSettings.get(API_CHAT_SETTINGS_KEY),
                     this.db.appSettings.get(API_VOICE_SETTINGS_KEY),
                     this.db.appSettings.get(SECURITY_SETTINGS_KEY)
                 ]);
+                const normalizedHomeApps = normalizeHomeAppsState(homeApps || createDefaultHomeAppsState());
+                const visibleHomeAppCount = normalizedHomeApps.items.filter(item => item.visible !== false).length;
 
                 return {
                     music: { count: musicCount },
@@ -339,6 +373,11 @@
                     forumProfile: {
                         saved: Boolean(forumProfile),
                         updatedAt: Number(forumProfile?.updatedAt) || 0
+                    },
+                    homeApps: {
+                        count: visibleHomeAppCount,
+                        saved: Boolean(homeApps),
+                        updatedAt: Number(homeApps?.updatedAt) || 0
                     },
                     apiChatSettings: {
                         saved: Boolean(apiChatSettings),
@@ -386,6 +425,97 @@
             backgroundFile: null,
             updatedAt: 0
         };
+        const HOME_APP_PRESETS = {
+            archive: {
+                id: 'archive',
+                label: '档案',
+                subtitle: 'ARCHIVE',
+                icon: 'folder',
+                gradientStart: 'rgba(252,253,255,0.96)',
+                gradientEnd: 'rgba(197,221,245,0.98)',
+                glow: 'rgba(126,169,215,0.34)',
+                iconColor: '#587ea8',
+                action: 'archive'
+            },
+            chat: {
+                id: 'chat',
+                label: '聊天',
+                subtitle: 'CHAT',
+                icon: 'message-circle',
+                gradientStart: 'rgba(248,253,255,0.96)',
+                gradientEnd: 'rgba(182,221,232,0.98)',
+                glow: 'rgba(108,184,198,0.34)',
+                iconColor: '#4d7d88',
+                action: 'chat'
+            },
+            forum: {
+                id: 'forum',
+                label: '论坛',
+                subtitle: 'FORUM',
+                icon: 'users',
+                gradientStart: 'rgba(251,253,255,0.96)',
+                gradientEnd: 'rgba(196,227,220,0.98)',
+                glow: 'rgba(114,181,160,0.34)',
+                iconColor: '#4f7d72',
+                action: 'forum'
+            },
+            checkin: {
+                id: 'checkin',
+                label: '查岗',
+                subtitle: 'CHECK',
+                icon: 'map-pin',
+                gradientStart: 'rgba(255,252,247,0.96)',
+                gradientEnd: 'rgba(244,217,180,0.98)',
+                glow: 'rgba(214,161,96,0.3)',
+                iconColor: '#9a7240',
+                action: 'modal'
+            },
+            game: {
+                id: 'game',
+                label: '游戏',
+                subtitle: 'PLAY',
+                icon: 'crosshair',
+                gradientStart: 'rgba(255,250,248,0.96)',
+                gradientEnd: 'rgba(242,204,194,0.98)',
+                glow: 'rgba(215,132,116,0.32)',
+                iconColor: '#a76457',
+                action: 'modal'
+            },
+            shopping: {
+                id: 'shopping',
+                label: '购物',
+                subtitle: 'SHOP',
+                icon: 'shopping-bag',
+                gradientStart: 'rgba(255,251,252,0.96)',
+                gradientEnd: 'rgba(240,206,220,0.98)',
+                glow: 'rgba(202,132,163,0.3)',
+                iconColor: '#9b607a',
+                action: 'modal'
+            },
+            baby: {
+                id: 'baby',
+                label: '崽崽',
+                subtitle: 'BABY',
+                icon: 'heart',
+                gradientStart: 'rgba(255,251,248,0.96)',
+                gradientEnd: 'rgba(244,219,196,0.98)',
+                glow: 'rgba(221,161,120,0.3)',
+                iconColor: '#a9704a',
+                action: 'archive-char'
+            },
+            offline: {
+                id: 'offline',
+                label: '线下',
+                subtitle: 'OFFLINE',
+                icon: 'wifi-off',
+                gradientStart: 'rgba(249,252,250,0.96)',
+                gradientEnd: 'rgba(208,223,214,0.98)',
+                glow: 'rgba(134,170,149,0.3)',
+                iconColor: '#5f776a',
+                action: 'modal'
+            }
+        };
+        const DEFAULT_HOME_APP_ORDER = ['archive', 'chat', 'forum', 'checkin', 'game', 'shopping', 'baby', 'offline'];
         const DEFAULT_API_CHAT_SETTINGS = {
             key: API_CHAT_SETTINGS_KEY,
             presetName: '默认预设',
@@ -415,7 +545,15 @@
             password: '2020',
             updatedAt: 0
         };
+        function createDefaultHomeAppsState() {
+            return {
+                key: HOME_APPS_KEY,
+                items: DEFAULT_HOME_APP_ORDER.map(id => ({ id, visible: true })),
+                updatedAt: 0
+            };
+        }
         let forumProfileState = { ...DEFAULT_FORUM_PROFILE };
+        let homeAppsState = createDefaultHomeAppsState();
         let apiChatSettingsState = { ...DEFAULT_API_CHAT_SETTINGS };
         let apiVoiceSettingsState = { ...DEFAULT_API_VOICE_SETTINGS };
         let securitySettingsState = { ...DEFAULT_SECURITY_SETTINGS };
@@ -520,6 +658,7 @@
             initWorldbookData();
             initArchiveData();
             initChatRoleThreadsData();
+            initHomeAppsData();
             initForumProfileData();
             initApiChatSettingsData();
             initApiVoiceSettingsData();
@@ -573,6 +712,143 @@
         async function persistForumProfileState() {
             forumProfileState.updatedAt = Date.now();
             await appDB.saveForumProfile(forumProfileState);
+        }
+
+        function normalizeHomeAppsState(settings = {}) {
+            const defaultState = createDefaultHomeAppsState();
+            const rawItems = Array.isArray(settings.items) ? settings.items : defaultState.items;
+            const seenIds = new Set();
+            const items = [];
+
+            rawItems.forEach(item => {
+                const id = String(item?.id || '').trim();
+                if (!HOME_APP_PRESETS[id] || seenIds.has(id)) return;
+                seenIds.add(id);
+                items.push({
+                    id,
+                    visible: item?.visible !== false
+                });
+            });
+
+            DEFAULT_HOME_APP_ORDER.forEach(id => {
+                if (seenIds.has(id)) return;
+                items.push({ id, visible: true });
+            });
+
+            return {
+                ...defaultState,
+                ...settings,
+                items,
+                updatedAt: Number(settings.updatedAt) || 0
+            };
+        }
+
+        function getResolvedHomeApps() {
+            return normalizeHomeAppsState(homeAppsState).items
+                .filter(item => item.visible !== false && HOME_APP_PRESETS[item.id])
+                .map(item => ({
+                    ...HOME_APP_PRESETS[item.id],
+                    visible: item.visible !== false
+                }));
+        }
+
+        function renderHomeAppGrid() {
+            const grid = document.getElementById('home-app-grid');
+            if (!grid) return;
+
+            grid.innerHTML = '';
+            getResolvedHomeApps().forEach(app => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'app-item';
+                button.dataset.appId = app.id;
+                button.title = app.label;
+                button.style.setProperty('--app-grad-start', app.gradientStart);
+                button.style.setProperty('--app-grad-end', app.gradientEnd);
+                button.style.setProperty('--app-glow', app.glow);
+                button.style.setProperty('--app-icon-color', app.iconColor);
+
+                const icon = document.createElement('div');
+                icon.className = 'app-icon';
+                icon.innerHTML = `<i data-feather="${app.icon}"></i>`;
+
+                const copy = document.createElement('div');
+                copy.className = 'app-item-copy';
+
+                const label = document.createElement('span');
+                label.className = 'app-item-label';
+                label.innerText = app.label;
+
+                const subtitle = document.createElement('span');
+                subtitle.className = 'app-item-subtitle';
+                subtitle.innerText = app.subtitle;
+
+                copy.append(label, subtitle);
+                button.append(icon, copy);
+                button.addEventListener('click', event => openHomeApp(app.id, event));
+                grid.appendChild(button);
+            });
+
+            feather.replace({ 'stroke-width': 1.2 });
+        }
+
+        async function initHomeAppsData() {
+            const savedHomeApps = await appDB.getHomeApps();
+            homeAppsState = normalizeHomeAppsState(savedHomeApps || createDefaultHomeAppsState());
+            renderHomeAppGrid();
+        }
+
+        function openHomeApp(appId, event = null) {
+            if (event) event.preventDefault();
+
+            const app = HOME_APP_PRESETS[appId];
+            if (!app) return;
+
+            if (app.action === 'archive') {
+                openArchiveApp();
+                return;
+            }
+            if (app.action === 'chat') {
+                openChatApp();
+                return;
+            }
+            if (app.action === 'forum') {
+                openForum();
+                return;
+            }
+            if (app.action === 'archive-char') {
+                currentArchiveTab = 'char';
+                openArchiveApp();
+                return;
+            }
+
+            const modalMap = {
+                checkin: {
+                    title: '查岗入口',
+                    lines: ['桌面已加入查岗图标。', '后续可以继续接入定位、打卡或到场记录能力。'],
+                    note: '当前先保留主题化入口位，方便后续补完整模块。'
+                },
+                game: {
+                    title: '游戏入口',
+                    lines: ['桌面已加入游戏图标。', '可以继续接入抽卡、收集或轻量小游戏页面。'],
+                    note: '这次先把入口和主题化图标补齐。'
+                },
+                shopping: {
+                    title: '购物入口',
+                    lines: ['桌面已加入购物图标。', '后续可扩展为商城、心愿单或周边列表。'],
+                    note: '当前先保留视觉入口，不强行塞入占位页面。'
+                },
+                offline: {
+                    title: '线下入口',
+                    lines: ['桌面已加入线下图标。', '适合后续接本地活动、到店记录或离线工具。'],
+                    note: '目前先作为主题化桌面入口存在。'
+                }
+            };
+
+            const modalContent = modalMap[appId];
+            if (modalContent) {
+                showOperationResultModal(modalContent.title, modalContent.lines, modalContent.note);
+            }
         }
 
         function readLocalJsonValue(key) {
@@ -966,6 +1242,11 @@
                 case 'worldbook':
                 case 'archiveProfiles':
                     return `${Number(stat.count) || 0} 条`;
+                case 'homeApps':
+                    if (!stat.count) return '0 项';
+                    return stat.saved && stat.updatedAt
+                        ? `${Number(stat.count) || 0} 项 · ${formatApiChatTime(stat.updatedAt)}`
+                        : `${Number(stat.count) || 0} 项默认布局`;
                 case 'forumProfile':
                 case 'apiChatSettings':
                 case 'apiVoiceSettings':
@@ -1098,6 +1379,7 @@
             await initMusicData();
             await initWorldbookData();
             await initArchiveData();
+            await initHomeAppsData();
             await initForumProfileData();
             await initApiChatSettingsData();
             await initApiVoiceSettingsData();
@@ -4641,6 +4923,16 @@
             container.scrollTop = container.scrollHeight;
         }
 
+        function syncChatPanels(tab) {
+            document.querySelectorAll('.chat-panel').forEach(panel => {
+                const isActive = panel.id === `chat-panel-${tab}`;
+                panel.classList.toggle('active', isActive);
+                panel.hidden = !isActive;
+                panel.style.display = isActive ? 'flex' : 'none';
+                panel.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+            });
+        }
+
         function openChatApp() {
             document.getElementById('home-screen').style.display = 'none';
             renderChatRoleThreadList();
@@ -4649,10 +4941,13 @@
             renderChatRoleThreadDetail();
             renderOnlineChatThreadDetail();
             updateChatRoleSendButtonState();
-            switchChatTab(currentChatTab);
             const screen = document.getElementById('chat-screen');
             screen.style.display = 'flex';
-            setTimeout(() => screen.style.opacity = '1', 50);
+            screen.offsetHeight;
+            switchChatTab(currentChatTab);
+            requestAnimationFrame(() => {
+                screen.style.opacity = '1';
+            });
         }
 
         function closeChatApp() {
@@ -4672,27 +4967,33 @@
         }
 
         function switchChatTab(tab) {
-            currentChatTab = tab;
             const titles = {
                 threads: ['聊天', 'PRIVATE CHANNELS'],
                 moments: ['朋友圈', 'VISUAL LOG'],
                 profile: ['个人', 'IDENTITY PANEL']
             };
+            const nextTab = Object.prototype.hasOwnProperty.call(titles, tab) ? tab : 'threads';
+            currentChatTab = nextTab;
 
             document.querySelectorAll('.chat-dock-btn').forEach(button => {
-                button.classList.toggle('active', button.dataset.tab === tab);
+                const isActive = button.dataset.tab === nextTab;
+                button.classList.toggle('active', isActive);
+                button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
             });
-            document.querySelectorAll('.chat-panel').forEach(panel => {
-                panel.classList.toggle('active', panel.id === `chat-panel-${tab}`);
-            });
+            syncChatPanels(nextTab);
 
-            document.getElementById('chat-header-title').innerText = titles[tab][0];
-            document.getElementById('chat-header-subtitle').innerText = titles[tab][1];
-            if (tab === 'threads') {
+            document.getElementById('chat-header-title').innerText = titles[nextTab][0];
+            document.getElementById('chat-header-subtitle').innerText = titles[nextTab][1];
+            if (nextTab === 'threads') {
                 renderChatRoleThreadList();
                 renderOnlineThreadList();
             }
-            feather.replace({ 'stroke-width': 1.2 });
+            if (nextTab === 'profile') {
+                applyForumProfileUI();
+            }
+            requestAnimationFrame(() => {
+                feather.replace({ 'stroke-width': 1.2 });
+            });
         }
 
         // --- 论坛帖子详情相关 ---

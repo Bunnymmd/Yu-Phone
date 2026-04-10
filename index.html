@@ -94,12 +94,7 @@
                 </div>
             </div>
 
-            <div class="app-grid">
-                <div class="app-item" onclick="openArchiveApp()"><div class="app-icon"><i data-feather="folder"></i></div><span>档案</span></div>
-                <div class="app-item" onclick="openChatApp()"><div class="app-icon"><i data-feather="message-circle"></i></div><span>聊天</span></div>
-                <div class="app-item" onclick="openForum()"><div class="app-icon"><i data-feather="users"></i></div><span>论坛</span></div>
-                <div class="app-item"><div class="app-icon"><i data-feather="map-pin"></i></div><span>查岗</span></div>
-            </div>
+            <div class="app-grid" id="home-app-grid"></div>
 
             <div class="dock">
                 <div class="dock-icon"><i data-feather="database"></i></div>
@@ -162,9 +157,9 @@
         <div id="chat-screen">
             <div class="chat-shell">
                 <div class="chat-top-actions">
-                    <div class="chat-dock-btn active" data-tab="threads" onclick="switchChatTab('threads')"><i data-feather="message-square"></i></div>
-                    <div class="chat-dock-btn" data-tab="moments" onclick="switchChatTab('moments')"><i data-feather="camera"></i></div>
-                    <div class="chat-dock-btn" data-tab="profile" onclick="switchChatTab('profile')"><i data-feather="user"></i></div>
+                    <button class="chat-dock-btn active" type="button" data-tab="threads" aria-label="切换到聊天页" aria-pressed="true" onclick="switchChatTab('threads')"><i data-feather="message-square"></i></button>
+                    <button class="chat-dock-btn" type="button" data-tab="moments" aria-label="切换到朋友圈" aria-pressed="false" onclick="switchChatTab('moments')"><i data-feather="camera"></i></button>
+                    <button class="chat-dock-btn" type="button" data-tab="profile" aria-label="切换到个人页" aria-pressed="false" onclick="switchChatTab('profile')"><i data-feather="user"></i></button>
                 </div>
 
                 <div class="chat-header">
@@ -737,6 +732,13 @@
                                     <div class="data-scope-copy">
                                         <strong>论坛资料</strong>
                                         <span id="data-scope-summary-forumProfile">未保存</span>
+                                    </div>
+                                </label>
+                                <label class="data-scope-card">
+                                    <input id="data-scope-homeApps" class="data-scope-checkbox" type="checkbox" checked>
+                                    <div class="data-scope-copy">
+                                        <strong>桌面应用</strong>
+                                        <span id="data-scope-summary-homeApps">0 项</span>
                                     </div>
                                 </label>
                                 <label class="data-scope-card">
