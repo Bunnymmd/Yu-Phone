@@ -14,6 +14,11 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        html, body {
+            width: 100%;
+            min-height: 100%;
+        }
+
         body {
             background-color: #d1dfed;
             display: flex; justify-content: center; align-items: center;
@@ -43,7 +48,20 @@
         }
 
         @media (max-width: 599px) {
-            #phone { width: 100vw; height: 100vh; border-radius: 0; border: none; }
+            body {
+                padding: 0;
+                margin: 0;
+                background-color: var(--bg-color);
+                overflow: hidden;
+            }
+            #phone {
+                width: 100vw;
+                height: 100dvh;
+                min-height: 100svh;
+                max-height: none;
+                border-radius: 0;
+                border: none;
+            }
         }
 
         .status-bar {
@@ -400,9 +418,39 @@
             display: flex; flex-direction: column; gap: 14px; opacity: 1;
         }
         .security-config,
+        .network-config,
         .data-management-config,
         .legal-config {
             display: flex; flex-direction: column; gap: 14px; opacity: 1;
+        }
+        .network-summary-grid,
+        .chat-online-summary-grid {
+            display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 14px;
+        }
+        .network-login-grid,
+        .network-actions {
+            display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
+        }
+        .network-presence-grid {
+            display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;
+        }
+        .network-presence-option {
+            width: 100%;
+        }
+        .network-add-inline {
+            display: flex; flex-direction: column; gap: 12px;
+        }
+        .presence-indicator[data-presence="chat"],
+        .chat-thread-tag[data-presence="chat"] {
+            color: #5a88b1;
+        }
+        .presence-indicator[data-presence="game"],
+        .chat-thread-tag[data-presence="game"] {
+            color: #b08338;
+        }
+        .presence-indicator[data-presence="offline"],
+        .chat-thread-tag[data-presence="offline"] {
+            color: #9a6b6b;
         }
         .security-top {
             display: flex; justify-content: space-between; align-items: flex-start; gap: 14px;
@@ -672,14 +720,21 @@
                 flex-direction: column;
             }
             .security-grid,
+            .network-login-grid,
             .data-scope-grid,
             .security-actions,
+            .network-actions,
             .data-management-actions,
             .legal-actions {
                 grid-template-columns: 1fr;
             }
             .security-grid .api-chat-row:last-child {
                 grid-column: auto;
+            }
+            .network-presence-grid,
+            .network-summary-grid,
+            .chat-online-summary-grid {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -1211,6 +1266,13 @@
         .chat-role-config-actions {
             display: flex; flex-direction: column; gap: 12px;
         }
+        .chat-online-context-card {
+            background:
+                radial-gradient(circle at top right, rgba(255,255,255,0.6), transparent 36%),
+                linear-gradient(145deg, rgba(244,248,252,0.98), rgba(229,238,246,0.98));
+            border-radius: 26px; box-shadow: var(--neu-out); color: var(--text-color);
+            padding: 18px; border: 1px solid rgba(255,255,255,0.6); margin-bottom: 14px;
+        }
         .chat-role-thread-page-layout {
             gap: 0; padding-bottom: 0;
         }
@@ -1345,7 +1407,12 @@
                 max-width: 100%;
             }
             .chat-role-config-summary-grid,
-            .chat-role-thread-association-grid { grid-template-columns: 1fr; }
+            .chat-role-thread-association-grid,
+            .network-summary-grid,
+            .chat-online-summary-grid,
+            .network-login-grid,
+            .network-actions,
+            .network-presence-grid { grid-template-columns: 1fr; }
         }
         .archive-textarea {
             min-height: 220px; resize: none; line-height: 1.7;
@@ -1448,6 +1515,9 @@
             cursor: pointer; transition: all 0.2s; border: none; outline: none;
         }
         .btn:active { box-shadow: var(--neu-in); }
+        .btn:disabled {
+            opacity: 0.6; cursor: not-allowed; pointer-events: none;
+        }
 
         .add-music-form { display: flex; flex-direction: column; gap: 15px; }
         .form-row { display: flex; gap: 10px; align-items: center; }

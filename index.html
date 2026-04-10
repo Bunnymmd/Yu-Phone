@@ -201,6 +201,16 @@
                             </div>
                             <div class="chat-role-list" id="chat-role-thread-list"></div>
                         </div>
+                        <div class="chat-role-section">
+                            <div class="chat-list-head">
+                                <div>
+                                    <div class="chat-list-title">联机会话</div>
+                                    <div class="chat-list-copy">先去设置页登录账号并绑定 USER 设定，再点右侧 + 通过账号把其他用户加入消息页。</div>
+                                </div>
+                                <div class="header-action-icon-btn chat-list-add-btn" onclick="openOnlineChatPicker()"><i data-feather="plus"></i></div>
+                            </div>
+                            <div class="chat-role-list" id="chat-online-thread-list"></div>
+                        </div>
                         <div class="chat-list">
                             <div class="chat-thread">
                                 <div class="chat-thread-avatar" id="chat-thread-avatar-self"><i data-feather="user"></i></div>
@@ -615,6 +625,77 @@
                                 <button class="btn" type="button" onclick="lockDeviceNow(event)">立即锁屏</button>
                             </div>
                             <div id="security-status" class="api-chat-status">当前锁屏密码默认开启，可随时关闭或改成新的 4 位数字密码。</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="setting-item" onclick="toggleSettingItem(this)">
+                    <div class="setting-item-header">
+                        <div class="setting-item-left"><i data-feather="wifi"></i><span>联机中心</span></div>
+                        <div class="setting-toggle"><i data-feather="chevron-down"></i></div>
+                    </div>
+                    <div class="setting-item-content" onclick="handleNetworkContentClick(event)">
+                        <div class="network-config">
+                            <div class="chat-role-config-summary">
+                                <div class="chat-role-config-summary-title">账号状态</div>
+                                <div class="network-summary-grid">
+                                    <div class="chat-role-config-summary-card">
+                                        <span>当前账号</span>
+                                        <strong id="network-current-account">未登录</strong>
+                                    </div>
+                                    <div class="chat-role-config-summary-card">
+                                        <span>当前 USER</span>
+                                        <strong id="network-current-user">未绑定</strong>
+                                    </div>
+                                    <div class="chat-role-config-summary-card">
+                                        <span>当前状态</span>
+                                        <strong id="network-current-presence" class="presence-indicator" data-presence="offline">线下</strong>
+                                    </div>
+                                    <div class="chat-role-config-summary-card">
+                                        <span>联机说明</span>
+                                        <strong id="network-current-summary">登录后可在聊天页联机会话区域添加其他账号。</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="network-login-grid">
+                                <label class="api-chat-row">
+                                    <span class="api-chat-label">账号</span>
+                                    <input id="network-account-input" class="input-field" maxlength="20" autocomplete="username" placeholder="输入账号">
+                                </label>
+                                <label class="api-chat-row">
+                                    <span class="api-chat-label">密码</span>
+                                    <input id="network-password-input" class="input-field" type="password" maxlength="40" autocomplete="current-password" placeholder="输入密码">
+                                </label>
+                            </div>
+                            <div class="network-actions">
+                                <button class="btn" type="button" onclick="loginNetworkAccount(event)">登录 / 切换账号</button>
+                                <button class="btn" type="button" onclick="logoutNetworkAccount(event)">退出账号</button>
+                            </div>
+                            <div class="network-presence-grid">
+                                <button class="worldbook-option api-voice-option network-presence-option" type="button" data-value="chat" onclick="setNetworkPresence('chat', event)">聊天中</button>
+                                <button class="worldbook-option api-voice-option network-presence-option" type="button" data-value="game" onclick="setNetworkPresence('game', event)">游戏中</button>
+                                <button class="worldbook-option api-voice-option network-presence-option" type="button" data-value="offline" onclick="setNetworkPresence('offline', event)">线下</button>
+                            </div>
+                            <div class="chat-role-config-section">
+                                <div class="chat-role-config-head">
+                                    <div>
+                                        <div class="chat-role-config-name">当前账号的 USER 设定</div>
+                                        <div class="chat-role-config-copy">联机会话必须绑定一张 USER 档案；对方账号也必须先绑定 USER 才能被添加。</div>
+                                    </div>
+                                    <div class="chat-role-config-status" id="network-user-binding-status">未绑定</div>
+                                </div>
+                                <div id="network-user-picker-list" class="chat-role-config-list"></div>
+                            </div>
+                            <div class="chat-role-config-section">
+                                <div class="chat-role-config-head">
+                                    <div>
+                                        <div class="chat-role-config-name">已添加用户</div>
+                                        <div class="chat-role-config-copy">这里显示当前账号已经建立过联机会话的对象与其状态。</div>
+                                    </div>
+                                    <div class="chat-role-config-status" id="network-contact-count">0 人</div>
+                                </div>
+                                <div id="network-contact-list" class="chat-role-config-list"></div>
+                            </div>
+                            <div id="network-login-status" class="api-chat-status">已预置两组账号。登录后绑定 USER 设定，再去聊天页添加对方账号。</div>
                         </div>
                     </div>
                 </div>
@@ -1035,6 +1116,108 @@
             <div class="chat-role-thread-composer">
                 <textarea id="chat-role-thread-input" class="input-field chat-role-thread-input" rows="1" maxlength="1200" placeholder="输入内容，按 Enter 发送，Shift + Enter 换行；空输入会触发角色主动回复" oninput="handleChatRoleThreadInput(event)" onkeydown="handleChatRoleThreadInputKeydown(event)"></textarea>
                 <button id="chat-role-thread-send-btn" class="btn" type="button" onclick="sendChatRoleMessage()">发送</button>
+            </div>
+        </div>
+
+        <div id="chat-online-picker-screen" class="chat-subscreen">
+            <div class="chat-subscreen-header">
+                <div class="back-btn" onclick="closeOnlineChatPicker(null)"><i data-feather="chevron-left"></i></div>
+                <div class="chat-subscreen-header-copy">
+                    <div class="chat-subscreen-title">添加联机用户</div>
+                    <div class="chat-subscreen-subtitle">通过账号匹配对方并建立私聊</div>
+                </div>
+            </div>
+            <div class="chat-subscreen-body">
+                <div class="chat-role-config-summary">
+                    <div class="chat-role-config-summary-title">当前选择</div>
+                    <div class="network-summary-grid">
+                        <div class="chat-role-config-summary-card">
+                            <span>当前账号</span>
+                            <strong id="chat-online-picker-current-account">未登录</strong>
+                        </div>
+                        <div class="chat-role-config-summary-card">
+                            <span>当前 USER</span>
+                            <strong id="chat-online-picker-current-user">未绑定</strong>
+                        </div>
+                        <div class="chat-role-config-summary-card">
+                            <span>目标账号</span>
+                            <strong id="chat-online-picker-target-account">未选择</strong>
+                        </div>
+                        <div class="chat-role-config-summary-card">
+                            <span>目标 USER</span>
+                            <strong id="chat-online-picker-target-user">未绑定</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-role-config-section">
+                    <div class="chat-role-config-head">
+                        <div>
+                            <div class="chat-role-config-name">通过账号筛选</div>
+                            <div class="chat-role-config-copy">输入对方账号后，下方会按账号过滤；双方都先绑定 USER 设定才能加入消息页。</div>
+                        </div>
+                    </div>
+                    <div class="network-add-inline">
+                        <input id="chat-online-account-input" class="input-field" maxlength="20" placeholder="输入对方账号" oninput="handleOnlinePickerAccountInput(event)">
+                    </div>
+                    <div id="chat-online-picker-status" class="api-chat-status">请先登录联机账号并绑定 USER 设定，然后输入账号或直接从下方选择。</div>
+                </div>
+                <div class="chat-role-config-section">
+                    <div class="chat-role-config-head">
+                        <div>
+                            <div class="chat-role-config-name">可添加账号</div>
+                            <div class="chat-role-config-copy">这里只展示已预置账号；若对方还没有绑定 USER，会显示为不可添加。</div>
+                        </div>
+                    </div>
+                    <div id="chat-online-candidate-list" class="chat-role-config-list"></div>
+                </div>
+                <div class="chat-role-config-actions">
+                    <button class="btn" id="chat-online-confirm-btn" type="button" onclick="confirmOnlineChatAdd()">加入消息页</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="chat-online-thread-screen" class="chat-subscreen">
+            <div class="chat-subscreen-header">
+                <div class="back-btn" onclick="closeOnlineChatThread(null)"><i data-feather="chevron-left"></i></div>
+                <div class="chat-subscreen-header-copy">
+                    <div class="chat-subscreen-title" id="chat-online-thread-title">联机会话</div>
+                    <div class="chat-subscreen-subtitle" id="chat-online-thread-subtitle">账号私聊</div>
+                </div>
+            </div>
+            <div class="chat-subscreen-body chat-role-thread-page-layout">
+                <div class="chat-online-context-card">
+                    <div class="chat-role-thread-hero-top">
+                        <div class="chat-thread-avatar" id="chat-online-thread-avatar"><i data-feather="user"></i></div>
+                        <div class="chat-role-thread-hero-copy">
+                            <div class="chat-role-thread-hero-title" id="chat-online-thread-peer-name">联机会话</div>
+                            <div class="chat-role-thread-hero-subtitle" id="chat-online-thread-account">切换账号后也能看到同一条私聊消息。</div>
+                        </div>
+                    </div>
+                    <div class="chat-online-summary-grid">
+                        <div class="chat-role-thread-association-card">
+                            <span>我的 USER</span>
+                            <strong id="chat-online-thread-self-user">未绑定</strong>
+                        </div>
+                        <div class="chat-role-thread-association-card">
+                            <span>对方 USER</span>
+                            <strong id="chat-online-thread-peer-user">未绑定</strong>
+                        </div>
+                        <div class="chat-role-thread-association-card">
+                            <span>对方状态</span>
+                            <strong id="chat-online-thread-peer-status" class="presence-indicator" data-presence="offline">线下</strong>
+                        </div>
+                        <div class="chat-role-thread-association-card">
+                            <span>账号</span>
+                            <strong id="chat-online-thread-peer-account">未连接</strong>
+                        </div>
+                    </div>
+                </div>
+                <div id="chat-online-thread-status" class="api-chat-status">联机会话消息保存在当前浏览器；切换到另一组账号后会读取同一条私聊线程。</div>
+                <div id="chat-online-thread-messages" class="chat-role-thread-messages chat-role-thread-page-messages"></div>
+            </div>
+            <div class="chat-role-thread-composer">
+                <textarea id="chat-online-thread-input" class="input-field chat-role-thread-input" rows="1" maxlength="1200" placeholder="输入消息，按 Enter 发送，Shift + Enter 换行" oninput="handleOnlineChatThreadInput(event)" onkeydown="handleOnlineChatThreadInputKeydown(event)"></textarea>
+                <button id="chat-online-thread-send-btn" class="btn" type="button" onclick="sendOnlineChatMessage()">发送</button>
             </div>
         </div>
 

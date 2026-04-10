@@ -523,6 +523,7 @@
             initForumProfileData();
             initApiChatSettingsData();
             initApiVoiceSettingsData();
+            initNetworkFeature();
         }
 
         function clearElementObjectUrl(element) {
@@ -2116,6 +2117,16 @@
             worldbookIds: []
         };
         let chatRoleRequestInFlight = false;
+        const NETWORK_STATE_STORAGE_KEY = 'yuNetworkState';
+        const NETWORK_SESSION_STORAGE_KEY = 'yuNetworkSession';
+        const NETWORK_PRESET_ACCOUNTS = [
+            { account: '2305201466', password: 'tu041031' },
+            { account: '2967105312', password: 'li051205' }
+        ];
+        let networkState = null;
+        let currentNetworkAccountId = '';
+        let currentOnlineThreadId = null;
+        let currentOnlinePickerTargetAccountId = '';
 
         function normalizeChatRoleMessages(messages = []) {
             if (!Array.isArray(messages)) return [];
@@ -2731,8 +2742,32 @@
             if (!input || !thread) return;
 
             const text = input.value.trim();
+            const now = Date.now();
+            let requestThread = thread;
             chatRoleRequestInFlight = true;
             updateChatRoleSendButtonState();
+
+            if (text) {
+                thread.messages.push({
+                    id: `user-${now}`,
+                    role: 'user',
+                    text,
+                    rawText: text,
+                    createdAt: now
+                });
+                thread.updatedAt = now;
+                chatRoleThreads.sort((a, b) => b.updatedAt - a.updatedAt);
+                requestThread = {
+                    ...thread,
+                    messages: thread.messages.slice(0, -1)
+                };
+                input.value = '';
+                syncChatRoleThreadInputHeight(input);
+                await persistChatRoleThreads();
+                renderChatRoleThreadList();
+                renderChatRoleThreadDetail();
+                renderChatRoleThreadMessages();
+            }
             setChatRoleThreadStatus(
                 text
                     ? '正在向已配置的 API 请求角色回复。会携带已绑定的用户身份牌、世界书和最近上下文。'
@@ -2741,21 +2776,11 @@
             );
 
             try {
-                const reply = await requestChatRoleAssistantReply(thread, text);
-                const now = Date.now();
-
-                if (text) {
-                    thread.messages.push({
-                        id: `user-${now}`,
-                        role: 'user',
-                        text,
-                        rawText: text,
-                        createdAt: now
-                    });
-                }
+                const reply = await requestChatRoleAssistantReply(requestThread, text);
+                const replyTime = Date.now();
 
                 thread.messages.push({
-                    id: `assistant-${now + 1}`,
+                    id: `assistant-${replyTime}`,
                     role: 'assistant',
                     text: reply.displayText,
                     rawText: reply.rawText,
@@ -2765,13 +2790,11 @@
                     state: reply.state,
                     worldbookRefs: reply.worldbookRefs,
                     memory: reply.memory,
-                    createdAt: now + 1
+                    createdAt: replyTime
                 });
 
-                thread.updatedAt = now + 1;
+                thread.updatedAt = replyTime;
                 chatRoleThreads.sort((a, b) => b.updatedAt - a.updatedAt);
-                input.value = '';
-                syncChatRoleThreadInputHeight(input);
 
                 await persistChatRoleThreads();
                 renderChatRoleThreadList();
@@ -2780,7 +2803,28 @@
                 setChatRoleThreadStatus('本轮角色回复已完成。返回内容已校验为只包含一个带 type 字段的 JSON 对象。', 'success');
                 input.focus();
             } catch (error) {
-                setChatRoleThreadStatus(`请求失败：${error?.message || '未知错误'}`, 'error');
+                const fallbackTime = Date.now();
+                const fallbackText = createChatRoleAutoReply(thread, text || '继续聊下去');
+                thread.messages.push({
+                    id: `assistant-local-${fallbackTime}`,
+                    role: 'assistant',
+                    text: fallbackText,
+                    rawText: fallbackText,
+                    payload: null,
+                    messageType: 'local_fallback',
+                    emotion: '',
+                    state: '',
+                    worldbookRefs: [],
+                    memory: [],
+                    createdAt: fallbackTime
+                });
+                thread.updatedAt = fallbackTime;
+                chatRoleThreads.sort((a, b) => b.updatedAt - a.updatedAt);
+                await persistChatRoleThreads();
+                renderChatRoleThreadList();
+                renderChatRoleThreadDetail();
+                renderChatRoleThreadMessages();
+                setChatRoleThreadStatus(`接口失败，已改为本地回退回复：${error?.message || '未知错误'}`, 'warning');
             } finally {
                 chatRoleRequestInFlight = false;
                 updateChatRoleSendButtonState();
@@ -3063,6 +3107,958 @@
                     ? sortNumericIdList(thread.worldbookIds)
                     : defaultWorldbookIds
             };
+        }
+
+        function createDefaultNetworkState() {
+            const accounts = {};
+            NETWORK_PRESET_ACCOUNTS.forEach((definition, index) => {
+                accounts[definition.account] = {
+                    account: definition.account,
+                    password: definition.password,
+                    nickname: definition.account,
+                    selectedUserProfileId: null,
+                    presenceMode: 'offline',
+                    contactAccounts: [],
+                    createdAt: Date.now() + index,
+                    updatedAt: 0
+                };
+            });
+
+            return {
+                version: 1,
+                accounts,
+                threads: {}
+            };
+        }
+
+        function readSessionTextValue(key) {
+            try {
+                return String(window.sessionStorage?.getItem(key) || '');
+            } catch (error) {
+                return '';
+            }
+        }
+
+        function writeSessionTextValue(key, value) {
+            try {
+                if (!window.sessionStorage) return false;
+                if (value) window.sessionStorage.setItem(key, String(value));
+                else window.sessionStorage.removeItem(key);
+                return true;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        function isPresetNetworkAccount(accountId = '') {
+            return NETWORK_PRESET_ACCOUNTS.some(item => item.account === String(accountId || '').trim());
+        }
+
+        function buildOnlineThreadId(leftAccountId, rightAccountId) {
+            return [String(leftAccountId || '').trim(), String(rightAccountId || '').trim()]
+                .filter(Boolean)
+                .sort()
+                .join('__');
+        }
+
+        function normalizeNetworkAccountState(rawAccount = {}, baseAccount = {}) {
+            const accountId = String(rawAccount?.account || baseAccount?.account || '').trim();
+            const presenceMode = ['chat', 'game', 'offline'].includes(rawAccount?.presenceMode)
+                ? rawAccount.presenceMode
+                : (baseAccount?.presenceMode || 'offline');
+            const selectedUserProfileId = Number.isFinite(Number(rawAccount?.selectedUserProfileId))
+                ? Number(rawAccount.selectedUserProfileId)
+                : (Number.isFinite(Number(baseAccount?.selectedUserProfileId)) ? Number(baseAccount.selectedUserProfileId) : null);
+
+            return {
+                account: accountId,
+                password: String(baseAccount?.password || rawAccount?.password || '').trim(),
+                nickname: String(rawAccount?.nickname || baseAccount?.nickname || accountId).trim() || accountId,
+                selectedUserProfileId,
+                presenceMode,
+                contactAccounts: [...new Set(
+                    (Array.isArray(rawAccount?.contactAccounts) ? rawAccount.contactAccounts : [])
+                        .map(item => String(item || '').trim())
+                        .filter(item => item && item !== accountId && isPresetNetworkAccount(item))
+                )],
+                createdAt: Number(rawAccount?.createdAt) || Number(baseAccount?.createdAt) || Date.now(),
+                updatedAt: Number(rawAccount?.updatedAt) || 0
+            };
+        }
+
+        function normalizeNetworkMessage(message = {}, index = 0) {
+            const text = String(message?.text || '').trim();
+            const senderAccount = String(message?.senderAccount || '').trim();
+            if (!text || !isPresetNetworkAccount(senderAccount)) return null;
+
+            return {
+                id: String(message?.id || `online-${senderAccount}-${Number(message?.createdAt) || (Date.now() + index)}`),
+                senderAccount,
+                text,
+                createdAt: Number(message?.createdAt) || (Date.now() + index)
+            };
+        }
+
+        function normalizeNetworkThreadState(rawThread = {}, fallbackId = '') {
+            let participants = Array.isArray(rawThread?.participants)
+                ? rawThread.participants.map(item => String(item || '').trim())
+                : [];
+
+            if (participants.length !== 2 && String(fallbackId || '').includes('__')) {
+                participants = String(fallbackId || '').split('__').map(item => item.trim());
+            }
+
+            participants = [...new Set(participants.filter(isPresetNetworkAccount))].sort();
+            if (participants.length !== 2) return null;
+
+            const messages = (Array.isArray(rawThread?.messages) ? rawThread.messages : [])
+                .map((message, index) => normalizeNetworkMessage(message, index))
+                .filter(Boolean);
+            const updatedAt = Number(rawThread?.updatedAt) || messages[messages.length - 1]?.createdAt || Date.now();
+
+            return {
+                id: buildOnlineThreadId(participants[0], participants[1]),
+                participants,
+                createdAt: Number(rawThread?.createdAt) || updatedAt,
+                updatedAt,
+                messages
+            };
+        }
+
+        function normalizeNetworkState(rawState = {}) {
+            const baseState = createDefaultNetworkState();
+            const accounts = {};
+
+            Object.keys(baseState.accounts).forEach(accountId => {
+                accounts[accountId] = normalizeNetworkAccountState(rawState?.accounts?.[accountId] || {}, baseState.accounts[accountId]);
+            });
+
+            const threads = {};
+            Object.entries(rawState?.threads || {}).forEach(([threadId, thread]) => {
+                const normalizedThread = normalizeNetworkThreadState(thread, threadId);
+                if (!normalizedThread) return;
+                threads[normalizedThread.id] = normalizedThread;
+
+                normalizedThread.participants.forEach(accountId => {
+                    const peerAccountId = normalizedThread.participants.find(item => item !== accountId);
+                    if (!peerAccountId) return;
+                    if (!accounts[accountId].contactAccounts.includes(peerAccountId)) {
+                        accounts[accountId].contactAccounts.push(peerAccountId);
+                    }
+                });
+            });
+
+            Object.values(accounts).forEach(account => {
+                account.contactAccounts = [...new Set(account.contactAccounts)].sort();
+            });
+
+            return {
+                version: 1,
+                accounts,
+                threads
+            };
+        }
+
+        function loadNetworkState() {
+            networkState = normalizeNetworkState(readLocalJsonValue(NETWORK_STATE_STORAGE_KEY) || {});
+            return networkState;
+        }
+
+        function persistNetworkState() {
+            networkState = normalizeNetworkState(networkState || {});
+            writeLocalJsonValue(NETWORK_STATE_STORAGE_KEY, networkState);
+            return networkState;
+        }
+
+        function getNetworkAccountById(accountId) {
+            return networkState?.accounts?.[String(accountId || '').trim()] || null;
+        }
+
+        function getCurrentNetworkAccount() {
+            return getNetworkAccountById(currentNetworkAccountId);
+        }
+
+        function getNetworkPresenceMode(accountOrId) {
+            const account = typeof accountOrId === 'string'
+                ? getNetworkAccountById(accountOrId)
+                : accountOrId;
+            return ['chat', 'game', 'offline'].includes(account?.presenceMode) ? account.presenceMode : 'offline';
+        }
+
+        function getNetworkPresenceLabel(presenceMode = 'offline') {
+            if (presenceMode === 'chat') return '聊天中';
+            if (presenceMode === 'game') return '游戏中';
+            return '线下';
+        }
+
+        function getNetworkAccountUserProfile(accountId) {
+            const account = getNetworkAccountById(accountId);
+            if (!account || !Number.isFinite(Number(account.selectedUserProfileId))) return null;
+            return getArchiveProfileById(Number(account.selectedUserProfileId));
+        }
+
+        function getNetworkAccountDisplayName(accountId) {
+            const profile = getNetworkAccountUserProfile(accountId);
+            return String(profile?.name || '').trim() || `账号 ${accountId}`;
+        }
+
+        function getNetworkThreadById(threadId) {
+            return networkState?.threads?.[String(threadId || '').trim()] || null;
+        }
+
+        function getOnlinePeerAccountId(thread, ownAccountId = currentNetworkAccountId) {
+            return thread?.participants?.find(accountId => accountId !== ownAccountId) || '';
+        }
+
+        function getCurrentOnlineThreads() {
+            const currentAccount = getCurrentNetworkAccount();
+            if (!currentAccount) return [];
+
+            return Object.values(networkState?.threads || {})
+                .filter(thread => Array.isArray(thread.participants) && thread.participants.includes(currentAccount.account))
+                .sort((left, right) => (right.updatedAt || 0) - (left.updatedAt || 0));
+        }
+
+        function getCurrentOnlineThread() {
+            const currentAccount = getCurrentNetworkAccount();
+            const thread = getNetworkThreadById(currentOnlineThreadId);
+            if (!currentAccount || !thread || !thread.participants.includes(currentAccount.account)) return null;
+            return thread;
+        }
+
+        function buildOnlineThreadPreview(thread) {
+            const lastMessage = thread?.messages?.[thread.messages.length - 1];
+            if (lastMessage?.text) return buildChatRoleSummary(lastMessage.text, 52) || lastMessage.text;
+
+            const peerAccountId = getOnlinePeerAccountId(thread);
+            const peerProfile = getNetworkAccountUserProfile(peerAccountId);
+            const peerName = String(peerProfile?.name || '').trim() || peerAccountId || '对方账号';
+            return `${peerName} 已加入消息页，直接输入即可开始联机聊天。`;
+        }
+
+        function syncNetworkAccountsWithArchiveProfiles() {
+            const validUserIds = new Set(getChatIdentityProfiles().map(entry => entry.id));
+            let changed = false;
+
+            Object.values(networkState?.accounts || {}).forEach(account => {
+                if (account.selectedUserProfileId && !validUserIds.has(account.selectedUserProfileId)) {
+                    account.selectedUserProfileId = null;
+                    account.updatedAt = Date.now();
+                    changed = true;
+                }
+            });
+
+            if (changed) persistNetworkState();
+            return changed;
+        }
+
+        function ensureOnlineThread(accountId, peerAccountId) {
+            if (!networkState) networkState = createDefaultNetworkState();
+            const threadId = buildOnlineThreadId(accountId, peerAccountId);
+            if (!threadId) return null;
+
+            let thread = getNetworkThreadById(threadId);
+            if (!thread) {
+                thread = {
+                    id: threadId,
+                    participants: [String(accountId || '').trim(), String(peerAccountId || '').trim()].sort(),
+                    createdAt: Date.now(),
+                    updatedAt: Date.now(),
+                    messages: []
+                };
+                networkState.threads[threadId] = thread;
+            }
+
+            const owner = getNetworkAccountById(accountId);
+            const peer = getNetworkAccountById(peerAccountId);
+            if (owner && !owner.contactAccounts.includes(peerAccountId)) owner.contactAccounts.push(peerAccountId);
+            if (peer && !peer.contactAccounts.includes(accountId)) peer.contactAccounts.push(accountId);
+
+            return thread;
+        }
+
+        function setNetworkStatus(message, tone = 'default') {
+            const element = document.getElementById('network-login-status');
+            if (!element) return;
+            element.innerText = message;
+            if (tone === 'default') delete element.dataset.tone;
+            else element.dataset.tone = tone;
+        }
+
+        function setOnlinePickerStatus(message, tone = 'default') {
+            const element = document.getElementById('chat-online-picker-status');
+            if (!element) return;
+            element.innerText = message;
+            if (tone === 'default') delete element.dataset.tone;
+            else element.dataset.tone = tone;
+        }
+
+        function setOnlineThreadStatus(message, tone = 'default') {
+            const element = document.getElementById('chat-online-thread-status');
+            if (!element) return;
+            element.innerText = message;
+            if (tone === 'default') delete element.dataset.tone;
+            else element.dataset.tone = tone;
+        }
+
+        function handleNetworkContentClick(event) {
+            if (event) event.stopPropagation();
+        }
+
+        function selectCurrentNetworkUserProfile(id) {
+            const currentAccount = getCurrentNetworkAccount();
+            if (!currentAccount) {
+                setNetworkStatus('请先登录联机账号，再绑定 USER 设定。', 'error');
+                return;
+            }
+
+            const profile = getArchiveProfileById(id);
+            if (!profile || profile.type !== 'user') {
+                setNetworkStatus('只能绑定 USER 分栏里的档案。', 'error');
+                return;
+            }
+
+            currentAccount.selectedUserProfileId = profile.id;
+            currentAccount.updatedAt = Date.now();
+            persistNetworkState();
+            renderNetworkSettingsPanel();
+            renderOnlineThreadList();
+            renderOnlineChatPicker();
+            renderOnlineChatThreadDetail();
+            setNetworkStatus(`当前账号已绑定 USER：${profile.name || '未命名身份牌'}。`, 'success');
+        }
+
+        function renderNetworkContactList() {
+            const container = document.getElementById('network-contact-list');
+            const countElement = document.getElementById('network-contact-count');
+            if (!container || !countElement) return;
+
+            const currentAccount = getCurrentNetworkAccount();
+            if (!currentAccount) {
+                container.innerHTML = '<div class="chat-role-picker-empty">还没有登录联机账号。先登录，再去聊天页联机会话区域添加其他账号。</div>';
+                countElement.innerText = '0 人';
+                return;
+            }
+
+            const contacts = [...new Set(currentAccount.contactAccounts || [])]
+                .map(accountId => getNetworkAccountById(accountId))
+                .filter(Boolean);
+
+            countElement.innerText = `${contacts.length} 人`;
+            if (!contacts.length) {
+                container.innerHTML = '<div class="chat-role-picker-empty">当前账号还没有已添加用户。去聊天页联机会话区域点 +，通过账号把对方加入消息页。</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            contacts.forEach(account => {
+                const profile = getNetworkAccountUserProfile(account.account);
+                const presenceMode = getNetworkPresenceMode(account);
+                const card = document.createElement('div');
+                card.className = 'chat-role-picker-card';
+                card.innerHTML = `
+                    <div class="chat-role-picker-avatar"></div>
+                    <div class="chat-role-picker-main">
+                        <div class="chat-role-picker-name">${escapeHtml(String(profile?.name || account.account).trim() || account.account)}</div>
+                        <div class="chat-role-picker-meta">
+                            <span>${escapeHtml(account.account)}</span>
+                            <span class="presence-indicator" data-presence="${escapeHtml(presenceMode)}">${escapeHtml(getNetworkPresenceLabel(presenceMode))}</span>
+                        </div>
+                        <div class="chat-role-picker-desc">${escapeHtml(buildChatRoleSummary(profile?.content || '对方已建立联机会话，但还没有填写更多 USER 简介。', 82) || '对方已建立联机会话。')}</div>
+                    </div>
+                    <button class="chat-role-picker-btn active" type="button">${escapeHtml(getNetworkPresenceLabel(presenceMode))}</button>
+                `;
+
+                setBackgroundFilePreview(
+                    card.querySelector('.chat-role-picker-avatar'),
+                    profile?.imageFile || null,
+                    '<span class="chat-role-picker-avatar-label">USER</span>'
+                );
+                container.appendChild(card);
+            });
+        }
+
+        function renderNetworkSettingsPanel() {
+            const currentAccount = getCurrentNetworkAccount();
+            const currentProfile = currentAccount ? getNetworkAccountUserProfile(currentAccount.account) : null;
+            const accountInput = document.getElementById('network-account-input');
+            const passwordInput = document.getElementById('network-password-input');
+            const currentAccountElement = document.getElementById('network-current-account');
+            const currentUserElement = document.getElementById('network-current-user');
+            const currentPresenceElement = document.getElementById('network-current-presence');
+            const currentSummaryElement = document.getElementById('network-current-summary');
+            const bindingStatus = document.getElementById('network-user-binding-status');
+
+            if (accountInput) accountInput.value = currentAccount?.account || accountInput.value || '';
+            if (passwordInput) passwordInput.value = '';
+
+            if (currentAccountElement) currentAccountElement.innerText = currentAccount ? currentAccount.account : '未登录';
+            if (currentUserElement) currentUserElement.innerText = currentProfile?.name || '未绑定';
+            if (currentPresenceElement) {
+                const presenceMode = getNetworkPresenceMode(currentAccount);
+                currentPresenceElement.innerText = getNetworkPresenceLabel(presenceMode);
+                currentPresenceElement.dataset.presence = presenceMode;
+            }
+            if (currentSummaryElement) {
+                currentSummaryElement.innerText = currentAccount
+                    ? (currentProfile
+                        ? '当前账号已可参与联机会话，可去聊天页添加其他账号。'
+                        : '当前账号已登录，但还没有绑定 USER 设定。')
+                    : '登录后可在聊天页联机会话区域添加其他账号。';
+            }
+            if (bindingStatus) bindingStatus.innerText = currentProfile ? '已绑定' : '未绑定';
+
+            document.querySelectorAll('.network-presence-option').forEach(button => {
+                const isActive = button.dataset.value === getNetworkPresenceMode(currentAccount);
+                button.classList.toggle('active', isActive);
+                button.disabled = !currentAccount;
+            });
+
+            renderChatRoleArchivePickerList(
+                'network-user-picker-list',
+                getChatIdentityProfiles(),
+                currentAccount?.selectedUserProfileId || null,
+                currentAccount
+                    ? '还没有 USER 档案。先去档案页 USER 分栏创建一张用户身份牌，再回来绑定给当前账号。'
+                    : '请先登录联机账号，再从 USER 分栏里选一张身份牌。',
+                selectCurrentNetworkUserProfile
+            );
+            renderNetworkContactList();
+            feather.replace({ 'stroke-width': 1.2 });
+        }
+
+        function loginNetworkAccount(event) {
+            if (event) event.stopPropagation();
+
+            loadNetworkState();
+            const accountId = String(document.getElementById('network-account-input')?.value || '').trim();
+            const password = String(document.getElementById('network-password-input')?.value || '').trim();
+            const account = getNetworkAccountById(accountId);
+
+            if (!account || account.password !== password) {
+                setNetworkStatus('账号或密码错误，请检查后重试。', 'error');
+                return;
+            }
+
+            currentNetworkAccountId = account.account;
+            writeSessionTextValue(NETWORK_SESSION_STORAGE_KEY, currentNetworkAccountId);
+            if (account.presenceMode === 'offline') account.presenceMode = 'chat';
+            account.updatedAt = Date.now();
+            persistNetworkState();
+
+            renderNetworkSettingsPanel();
+            renderOnlineThreadList();
+            renderOnlineChatPicker();
+            renderOnlineChatThreadDetail();
+            renderOnlineChatThreadMessages();
+            setNetworkStatus(`已登录账号 ${account.account}。请确认已经绑定 USER 设定，然后去聊天页添加对方账号。`, 'success');
+        }
+
+        function logoutNetworkAccount(event) {
+            if (event) event.stopPropagation();
+
+            const currentAccount = getCurrentNetworkAccount();
+            if (!currentAccount) {
+                setNetworkStatus('当前没有已登录的联机账号。', 'error');
+                return;
+            }
+
+            currentAccount.presenceMode = 'offline';
+            currentAccount.updatedAt = Date.now();
+            persistNetworkState();
+
+            currentNetworkAccountId = '';
+            currentOnlineThreadId = null;
+            currentOnlinePickerTargetAccountId = '';
+            writeSessionTextValue(NETWORK_SESSION_STORAGE_KEY, '');
+
+            closeOnlineChatPicker(null);
+            closeOnlineChatThread(null);
+            renderNetworkSettingsPanel();
+            renderOnlineThreadList();
+            renderOnlineChatPicker();
+            renderOnlineChatThreadDetail();
+            renderOnlineChatThreadMessages();
+            setNetworkStatus('联机账号已退出，状态已切到线下。', 'success');
+        }
+
+        function setNetworkPresence(presenceMode, event = null) {
+            if (event) event.stopPropagation();
+
+            const currentAccount = getCurrentNetworkAccount();
+            if (!currentAccount) {
+                setNetworkStatus('请先登录联机账号，再设置状态。', 'error');
+                return;
+            }
+
+            if (!['chat', 'game', 'offline'].includes(presenceMode)) return;
+            currentAccount.presenceMode = presenceMode;
+            currentAccount.updatedAt = Date.now();
+            persistNetworkState();
+
+            renderNetworkSettingsPanel();
+            renderOnlineThreadList();
+            renderOnlineChatPicker();
+            renderOnlineChatThreadDetail();
+            setNetworkStatus(`当前状态已切换为 ${getNetworkPresenceLabel(presenceMode)}。`, 'success');
+        }
+
+        function renderOnlineThreadList() {
+            const container = document.getElementById('chat-online-thread-list');
+            if (!container) return;
+
+            const currentAccount = getCurrentNetworkAccount();
+            if (!currentAccount) {
+                container.innerHTML = '<div class="chat-role-empty">还没有登录联机账号。先去设置页的联机中心输入账号密码，再回来添加其他用户。</div>';
+                return;
+            }
+
+            const currentProfile = getNetworkAccountUserProfile(currentAccount.account);
+            if (!currentProfile) {
+                container.innerHTML = '<div class="chat-role-empty">当前账号还没有绑定 USER 设定。先去设置页联机中心选择一张 USER 档案，再回来添加其他账号。</div>';
+                return;
+            }
+
+            const threads = getCurrentOnlineThreads();
+            if (!threads.length) {
+                container.innerHTML = '<div class="chat-role-empty">还没有联机会话。点右侧 + 输入对方账号；双方都绑定 USER 后，就能建立私聊。</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            threads.forEach(thread => {
+                const peerAccountId = getOnlinePeerAccountId(thread, currentAccount.account);
+                const peerProfile = getNetworkAccountUserProfile(peerAccountId);
+                const presenceMode = getNetworkPresenceMode(peerAccountId);
+                const card = document.createElement('div');
+                card.className = 'chat-thread chat-thread-role';
+                card.innerHTML = `
+                    <div class="chat-thread-avatar chat-role-thread-avatar"></div>
+                    <div class="chat-thread-main">
+                        <div class="chat-thread-name-row">
+                            <div class="chat-thread-name">${escapeHtml(String(peerProfile?.name || peerAccountId).trim() || peerAccountId)}</div>
+                            <div class="chat-thread-tag" data-presence="${escapeHtml(presenceMode)}">${escapeHtml(getNetworkPresenceLabel(presenceMode))}</div>
+                            <div class="chat-thread-tag">${escapeHtml(peerAccountId)}</div>
+                        </div>
+                        <div class="chat-thread-snippet">${escapeHtml(buildOnlineThreadPreview(thread))}</div>
+                    </div>
+                    <div class="chat-thread-meta">
+                        <span>${escapeHtml(formatChatRoleTime(thread.updatedAt))}</span>
+                        <div class="chat-thread-badge">${thread.messages.length}</div>
+                    </div>
+                `;
+
+                setBackgroundFilePreview(
+                    card.querySelector('.chat-role-thread-avatar'),
+                    peerProfile?.imageFile || null,
+                    '<span class="chat-thread-role-avatar-label">USER</span>'
+                );
+
+                card.addEventListener('click', () => openOnlineChatThread(thread.id));
+                container.appendChild(card);
+            });
+
+            feather.replace({ 'stroke-width': 1.2 });
+        }
+
+        function handleOnlinePickerAccountInput(event) {
+            currentOnlinePickerTargetAccountId = String(event?.target?.value || '').trim();
+            renderOnlineChatPicker();
+        }
+
+        function renderOnlineChatPicker() {
+            const currentAccount = getCurrentNetworkAccount();
+            const currentProfile = currentAccount ? getNetworkAccountUserProfile(currentAccount.account) : null;
+            const targetAccount = getNetworkAccountById(currentOnlinePickerTargetAccountId);
+            const targetProfile = targetAccount ? getNetworkAccountUserProfile(targetAccount.account) : null;
+            const input = document.getElementById('chat-online-account-input');
+            const confirmButton = document.getElementById('chat-online-confirm-btn');
+            const container = document.getElementById('chat-online-candidate-list');
+            const existingThread = currentAccount && targetAccount
+                ? getNetworkThreadById(buildOnlineThreadId(currentAccount.account, targetAccount.account))
+                : null;
+
+            if (input && input.value !== currentOnlinePickerTargetAccountId) {
+                input.value = currentOnlinePickerTargetAccountId;
+            }
+
+            const currentAccountElement = document.getElementById('chat-online-picker-current-account');
+            const currentUserElement = document.getElementById('chat-online-picker-current-user');
+            const targetAccountElement = document.getElementById('chat-online-picker-target-account');
+            const targetUserElement = document.getElementById('chat-online-picker-target-user');
+
+            if (currentAccountElement) currentAccountElement.innerText = currentAccount?.account || '未登录';
+            if (currentUserElement) currentUserElement.innerText = currentProfile?.name || '未绑定';
+            if (targetAccountElement) targetAccountElement.innerText = targetAccount?.account || '未选择';
+            if (targetUserElement) targetUserElement.innerText = targetProfile?.name || '未绑定';
+
+            if (confirmButton) {
+                confirmButton.innerText = existingThread ? '打开现有聊天' : '加入消息页';
+                confirmButton.disabled = !currentAccount || !currentProfile || !targetAccount || !targetProfile;
+            }
+
+            if (!container) return;
+
+            if (!currentAccount) {
+                container.innerHTML = '<div class="chat-role-picker-empty">请先去设置页联机中心登录账号，再回来通过账号添加其他用户。</div>';
+                setOnlinePickerStatus('当前还没有登录联机账号。', 'error');
+                return;
+            }
+
+            if (!currentProfile) {
+                container.innerHTML = '<div class="chat-role-picker-empty">当前账号还没有绑定 USER 设定。先去设置页联机中心选一张 USER 档案，再回来添加其他账号。</div>';
+                setOnlinePickerStatus('当前账号缺少 USER 设定，不能建立联机会话。', 'error');
+                return;
+            }
+
+            const query = String(currentOnlinePickerTargetAccountId || '').trim();
+            const candidates = Object.values(networkState?.accounts || {})
+                .filter(account => account.account !== currentAccount.account)
+                .filter(account => !query || account.account.includes(query));
+
+            if (!candidates.length) {
+                container.innerHTML = '<div class="chat-role-picker-empty">没有匹配到账号。请检查账号输入是否正确。</div>';
+                setOnlinePickerStatus('没有找到匹配的账号。', 'warning');
+                return;
+            }
+
+            container.innerHTML = '';
+            candidates.forEach(account => {
+                const profile = getNetworkAccountUserProfile(account.account);
+                const presenceMode = getNetworkPresenceMode(account);
+                const alreadyAdded = Boolean(getNetworkThreadById(buildOnlineThreadId(currentAccount.account, account.account)));
+                const selected = account.account === currentOnlinePickerTargetAccountId;
+                const card = document.createElement('div');
+                card.className = `chat-role-picker-card ${selected ? 'selected' : ''}`;
+                card.innerHTML = `
+                    <div class="chat-role-picker-avatar"></div>
+                    <div class="chat-role-picker-main">
+                        <div class="chat-role-picker-name">${escapeHtml(String(profile?.name || account.account).trim() || account.account)}</div>
+                        <div class="chat-role-picker-meta">
+                            <span>${escapeHtml(account.account)}</span>
+                            <span class="presence-indicator" data-presence="${escapeHtml(presenceMode)}">${escapeHtml(getNetworkPresenceLabel(presenceMode))}</span>
+                            <span>${profile ? '已绑定 USER' : '未绑定 USER'}</span>
+                        </div>
+                        <div class="chat-role-picker-desc">${escapeHtml(buildChatRoleSummary(profile?.content || '对方还没有填写更多 USER 设定。', 82) || '对方还没有填写更多 USER 设定。')}</div>
+                    </div>
+                    <button class="chat-role-picker-btn ${alreadyAdded || profile ? 'active' : ''}" type="button">${alreadyAdded ? '打开' : (profile ? '选择' : '不可添加')}</button>
+                `;
+
+                setBackgroundFilePreview(
+                    card.querySelector('.chat-role-picker-avatar'),
+                    profile?.imageFile || null,
+                    '<span class="chat-role-picker-avatar-label">USER</span>'
+                );
+
+                const handleSelect = () => {
+                    currentOnlinePickerTargetAccountId = account.account;
+                    renderOnlineChatPicker();
+                };
+
+                card.addEventListener('click', handleSelect);
+                card.querySelector('.chat-role-picker-btn')?.addEventListener('click', event => {
+                    event.stopPropagation();
+                    if (alreadyAdded) {
+                        const thread = getNetworkThreadById(buildOnlineThreadId(currentAccount.account, account.account));
+                        if (thread) {
+                            closeOnlineChatPicker(null);
+                            openOnlineChatThread(thread.id);
+                            return;
+                        }
+                    }
+                    handleSelect();
+                });
+
+                container.appendChild(card);
+            });
+
+            setOnlinePickerStatus(
+                targetAccount
+                    ? (targetProfile
+                        ? '双方 USER 设定都已可用，点下方按钮即可加入消息页。'
+                        : '目标账号还没有绑定 USER 设定，暂时不能添加。')
+                    : '输入对方账号或直接从下方列表选择。',
+                targetAccount && !targetProfile ? 'warning' : 'default'
+            );
+            feather.replace({ 'stroke-width': 1.2 });
+        }
+
+        function openOnlineChatPicker() {
+            loadNetworkState();
+            currentOnlinePickerTargetAccountId = '';
+            renderOnlineChatPicker();
+            toggleChatSubscreen('chat-online-picker-screen', true);
+        }
+
+        function closeOnlineChatPicker(event) {
+            if (event && event.target !== event.currentTarget) return;
+            toggleChatSubscreen('chat-online-picker-screen', false);
+        }
+
+        function confirmOnlineChatAdd() {
+            const currentAccount = getCurrentNetworkAccount();
+            const targetAccount = getNetworkAccountById(currentOnlinePickerTargetAccountId);
+            const currentProfile = currentAccount ? getNetworkAccountUserProfile(currentAccount.account) : null;
+            const targetProfile = targetAccount ? getNetworkAccountUserProfile(targetAccount.account) : null;
+
+            if (!currentAccount) {
+                setOnlinePickerStatus('请先登录联机账号。', 'error');
+                return;
+            }
+            if (!currentProfile) {
+                setOnlinePickerStatus('请先为当前账号绑定 USER 设定。', 'error');
+                return;
+            }
+            if (!targetAccount || targetAccount.account === currentAccount.account) {
+                setOnlinePickerStatus('请选择一个有效的对方账号。', 'error');
+                return;
+            }
+            if (!targetProfile) {
+                setOnlinePickerStatus('对方账号还没有绑定 USER 设定，暂时不能添加。', 'error');
+                return;
+            }
+
+            const thread = ensureOnlineThread(currentAccount.account, targetAccount.account);
+            if (!thread) {
+                setOnlinePickerStatus('联机会话创建失败。', 'error');
+                return;
+            }
+
+            if (currentAccount.presenceMode === 'offline') currentAccount.presenceMode = 'chat';
+            currentAccount.updatedAt = Date.now();
+            thread.updatedAt = thread.updatedAt || Date.now();
+            persistNetworkState();
+
+            currentOnlineThreadId = thread.id;
+            renderNetworkSettingsPanel();
+            renderOnlineThreadList();
+            closeOnlineChatPicker(null);
+            openOnlineChatThread(thread.id);
+            setOnlineThreadStatus(`已建立与 ${targetProfile.name || targetAccount.account} 的联机会话。`, 'success');
+        }
+
+        function renderOnlineChatThreadDetail() {
+            const currentAccount = getCurrentNetworkAccount();
+            const thread = getCurrentOnlineThread();
+            const title = document.getElementById('chat-online-thread-title');
+            const subtitle = document.getElementById('chat-online-thread-subtitle');
+            const peerName = document.getElementById('chat-online-thread-peer-name');
+            const accountText = document.getElementById('chat-online-thread-account');
+            const peerAccountElement = document.getElementById('chat-online-thread-peer-account');
+            const selfUserElement = document.getElementById('chat-online-thread-self-user');
+            const peerUserElement = document.getElementById('chat-online-thread-peer-user');
+            const peerStatusElement = document.getElementById('chat-online-thread-peer-status');
+            const avatarElement = document.getElementById('chat-online-thread-avatar');
+
+            if (!currentAccount || !thread) {
+                if (title) title.innerText = '联机会话';
+                if (subtitle) subtitle.innerText = '账号私聊';
+                if (peerName) peerName.innerText = '联机会话';
+                if (accountText) accountText.innerText = '切换账号后也能看到同一条私聊消息。';
+                if (peerAccountElement) peerAccountElement.innerText = '未连接';
+                if (selfUserElement) selfUserElement.innerText = '未绑定';
+                if (peerUserElement) peerUserElement.innerText = '未绑定';
+                if (peerStatusElement) {
+                    peerStatusElement.innerText = '线下';
+                    peerStatusElement.dataset.presence = 'offline';
+                }
+                setBackgroundFilePreview(avatarElement, null, '<i data-feather="user"></i>');
+                feather.replace({ 'stroke-width': 1.2 });
+                return;
+            }
+
+            const peerAccountId = getOnlinePeerAccountId(thread, currentAccount.account);
+            const selfProfile = getNetworkAccountUserProfile(currentAccount.account);
+            const peerProfile = getNetworkAccountUserProfile(peerAccountId);
+            const presenceMode = getNetworkPresenceMode(peerAccountId);
+            const displayName = String(peerProfile?.name || peerAccountId).trim() || peerAccountId;
+
+            if (title) title.innerText = displayName;
+            if (subtitle) subtitle.innerText = `${peerAccountId} · ${getNetworkPresenceLabel(presenceMode)}`;
+            if (peerName) peerName.innerText = displayName;
+            if (accountText) accountText.innerText = `你和 ${displayName} 的联机私聊消息会保存在当前浏览器。`;
+            if (peerAccountElement) peerAccountElement.innerText = peerAccountId;
+            if (selfUserElement) selfUserElement.innerText = selfProfile?.name || '未绑定';
+            if (peerUserElement) peerUserElement.innerText = peerProfile?.name || '未绑定';
+            if (peerStatusElement) {
+                peerStatusElement.innerText = getNetworkPresenceLabel(presenceMode);
+                peerStatusElement.dataset.presence = presenceMode;
+            }
+            setBackgroundFilePreview(
+                avatarElement,
+                peerProfile?.imageFile || null,
+                '<span class="chat-thread-role-avatar-label">USER</span>'
+            );
+            feather.replace({ 'stroke-width': 1.2 });
+        }
+
+        function renderOnlineChatThreadMessages() {
+            const container = document.getElementById('chat-online-thread-messages');
+            if (!container) return;
+
+            const currentAccount = getCurrentNetworkAccount();
+            const thread = getCurrentOnlineThread();
+            if (!currentAccount || !thread) {
+                container.innerHTML = '<div class="chat-role-thread-empty">当前没有联机会话。先登录账号并添加一个对方账号。</div>';
+                return;
+            }
+
+            if (!thread.messages.length) {
+                container.innerHTML = '<div class="chat-role-thread-empty">这里还没有消息。输入一句话，就能开始联机私聊。</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            thread.messages.forEach(message => {
+                const isSelf = message.senderAccount === currentAccount.account;
+                const senderName = getNetworkAccountDisplayName(message.senderAccount);
+                const item = document.createElement('div');
+                item.className = `chat-role-message ${isSelf ? 'user' : 'assistant'}`;
+                item.innerHTML = `
+                    <div class="chat-role-bubble">${escapeHtml(message.text).replace(/\n/g, '<br>')}</div>
+                    <div class="chat-role-bubble-meta">${escapeHtml(`${senderName} · ${formatChatRoleTime(message.createdAt, true)}`)}</div>
+                `;
+                container.appendChild(item);
+            });
+
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function openOnlineChatThread(threadId) {
+            const currentAccount = getCurrentNetworkAccount();
+            if (!currentAccount) {
+                setNetworkStatus('请先登录联机账号，再打开联机会话。', 'error');
+                return;
+            }
+
+            const thread = getNetworkThreadById(threadId);
+            if (!thread || !thread.participants.includes(currentAccount.account)) return;
+
+            currentOnlineThreadId = thread.id;
+            renderOnlineChatThreadDetail();
+            renderOnlineChatThreadMessages();
+            toggleChatSubscreen('chat-online-thread-screen', true);
+            setTimeout(() => {
+                const input = document.getElementById('chat-online-thread-input');
+                if (input) {
+                    syncChatRoleThreadInputHeight(input);
+                    input.focus();
+                }
+            }, 80);
+        }
+
+        function closeOnlineChatThread(event) {
+            if (event && event.target !== event.currentTarget) return;
+            toggleChatSubscreen('chat-online-thread-screen', false);
+        }
+
+        function handleOnlineChatThreadInput(event) {
+            syncChatRoleThreadInputHeight(event?.target || document.getElementById('chat-online-thread-input'));
+        }
+
+        function handleOnlineChatThreadInputKeydown(event) {
+            if (event.key !== 'Enter' || event.shiftKey) return;
+            event.preventDefault();
+            sendOnlineChatMessage();
+        }
+
+        function sendOnlineChatMessage() {
+            const currentAccount = getCurrentNetworkAccount();
+            const currentProfile = currentAccount ? getNetworkAccountUserProfile(currentAccount.account) : null;
+            const thread = getCurrentOnlineThread();
+            const input = document.getElementById('chat-online-thread-input');
+            const text = String(input?.value || '').trim();
+
+            if (!currentAccount) {
+                setOnlineThreadStatus('请先登录联机账号。', 'error');
+                return;
+            }
+            if (!currentProfile) {
+                setOnlineThreadStatus('请先在设置页联机中心给当前账号绑定 USER 设定。', 'error');
+                return;
+            }
+            if (!thread) {
+                setOnlineThreadStatus('当前没有可用的联机会话。', 'error');
+                return;
+            }
+            if (!text) {
+                setOnlineThreadStatus('请输入消息后再发送。', 'error');
+                return;
+            }
+
+            const peerAccountId = getOnlinePeerAccountId(thread, currentAccount.account);
+            const peerProfile = getNetworkAccountUserProfile(peerAccountId);
+            if (!peerProfile) {
+                setOnlineThreadStatus('对方还没有绑定 USER 设定，暂时不能发送。', 'error');
+                return;
+            }
+
+            if (currentAccount.presenceMode === 'offline') currentAccount.presenceMode = 'chat';
+            currentAccount.updatedAt = Date.now();
+
+            const liveThread = ensureOnlineThread(currentAccount.account, peerAccountId);
+            const now = Date.now();
+            liveThread.messages.push({
+                id: `online-${currentAccount.account}-${now}`,
+                senderAccount: currentAccount.account,
+                text,
+                createdAt: now
+            });
+            liveThread.updatedAt = now;
+            persistNetworkState();
+
+            if (input) {
+                input.value = '';
+                syncChatRoleThreadInputHeight(input);
+            }
+
+            renderNetworkSettingsPanel();
+            renderOnlineThreadList();
+            renderOnlineChatThreadDetail();
+            renderOnlineChatThreadMessages();
+            setOnlineThreadStatus(`消息已发送给 ${peerProfile.name || peerAccountId}。`, 'success');
+        }
+
+        function handleNetworkStorageSync(event) {
+            if (event?.key && event.key !== NETWORK_STATE_STORAGE_KEY) return;
+
+            loadNetworkState();
+            syncNetworkAccountsWithArchiveProfiles();
+
+            if (currentNetworkAccountId && !getCurrentNetworkAccount()) {
+                currentNetworkAccountId = '';
+                currentOnlineThreadId = null;
+                writeSessionTextValue(NETWORK_SESSION_STORAGE_KEY, '');
+            }
+
+            if (currentOnlineThreadId && !getCurrentOnlineThread()) {
+                currentOnlineThreadId = getCurrentOnlineThreads()[0]?.id || null;
+            }
+
+            renderNetworkSettingsPanel();
+            renderOnlineThreadList();
+            renderOnlineChatPicker();
+            renderOnlineChatThreadDetail();
+            renderOnlineChatThreadMessages();
+        }
+
+        function initNetworkFeature() {
+            loadNetworkState();
+            currentNetworkAccountId = readSessionTextValue(NETWORK_SESSION_STORAGE_KEY);
+            if (currentNetworkAccountId && !getCurrentNetworkAccount()) {
+                currentNetworkAccountId = '';
+                writeSessionTextValue(NETWORK_SESSION_STORAGE_KEY, '');
+            }
+
+            syncNetworkAccountsWithArchiveProfiles();
+            if (currentOnlineThreadId && !getCurrentOnlineThread()) {
+                currentOnlineThreadId = getCurrentOnlineThreads()[0]?.id || null;
+            }
+            renderNetworkSettingsPanel();
+            renderOnlineThreadList();
+            renderOnlineChatPicker();
+            renderOnlineChatThreadDetail();
+            renderOnlineChatThreadMessages();
         }
 
         function syncChatRoleThreadsWithArchiveProfiles() {
@@ -3648,8 +4644,10 @@
         function openChatApp() {
             document.getElementById('home-screen').style.display = 'none';
             renderChatRoleThreadList();
+            renderOnlineThreadList();
             renderChatRoleConfigScreen();
             renderChatRoleThreadDetail();
+            renderOnlineChatThreadDetail();
             updateChatRoleSendButtonState();
             switchChatTab(currentChatTab);
             const screen = document.getElementById('chat-screen');
@@ -3661,6 +4659,8 @@
             const screen = document.getElementById('chat-screen');
             closeChatRolePicker(null);
             closeChatRoleThread(null);
+            closeOnlineChatPicker(null);
+            closeOnlineChatThread(null);
             screen.style.opacity = '0';
             setTimeout(() => {
                 screen.style.display = 'none';
@@ -3690,6 +4690,7 @@
             document.getElementById('chat-header-subtitle').innerText = titles[tab][1];
             if (tab === 'threads') {
                 renderChatRoleThreadList();
+                renderOnlineThreadList();
             }
             feather.replace({ 'stroke-width': 1.2 });
         }
@@ -3812,6 +4813,7 @@
             populateApiChatForm();
             populateApiVoiceForm();
             populateSecurityForm();
+            renderNetworkSettingsPanel();
             void refreshDataManagementPanel();
             setDataManagementStatus('勾选需要操作的数据类型后，可批量导出、导入或清空。导出文件名格式为 Yu-日期-时间.json。');
             const settings = document.getElementById('settings-screen');
@@ -3897,10 +4899,16 @@
             archiveProfiles.sort((a, b) => (b.updatedAt || b.id) - (a.updatedAt || a.id));
             renderArchiveList();
             const chatThreadsChanged = syncChatRoleThreadsWithArchiveProfiles();
+            const networkBindingsChanged = syncNetworkAccountsWithArchiveProfiles();
             renderChatRoleThreadList();
             renderChatRolePickerList();
             renderChatRoleThreadDetail();
+            renderNetworkSettingsPanel();
+            renderOnlineThreadList();
+            renderOnlineChatPicker();
+            renderOnlineChatThreadDetail();
             if (chatThreadsChanged) await persistChatRoleThreads();
+            if (networkBindingsChanged) renderOnlineChatThreadMessages();
         }
 
         function getArchiveTypeLabel(type) {
@@ -4574,6 +5582,7 @@
 
         bindApiSettingsDraftInputs();
         window.addEventListener('pagehide', flushPendingApiSettingsDrafts);
+        window.addEventListener('storage', handleNetworkStorageSync);
         registerAppServiceWorker();
 
         window.addEventListener('load', () => {
