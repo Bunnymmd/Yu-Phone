@@ -431,10 +431,16 @@
                 label: '档案',
                 subtitle: 'ARCHIVE',
                 icon: 'folder',
+                badgeIcon: 'bookmark',
                 gradientStart: 'rgba(252,253,255,0.96)',
                 gradientEnd: 'rgba(197,221,245,0.98)',
                 glow: 'rgba(126,169,215,0.34)',
                 iconColor: '#587ea8',
+                orbStart: 'rgba(239,246,255,0.96)',
+                orbEnd: 'rgba(174,206,236,0.98)',
+                ringColor: 'rgba(113,159,205,0.26)',
+                badgeBackground: 'rgba(255,255,255,0.9)',
+                badgeColor: '#587ea8',
                 action: 'archive'
             },
             chat: {
@@ -442,10 +448,16 @@
                 label: '聊天',
                 subtitle: 'CHAT',
                 icon: 'message-circle',
+                badgeIcon: 'send',
                 gradientStart: 'rgba(248,253,255,0.96)',
                 gradientEnd: 'rgba(182,221,232,0.98)',
                 glow: 'rgba(108,184,198,0.34)',
                 iconColor: '#4d7d88',
+                orbStart: 'rgba(237,250,252,0.96)',
+                orbEnd: 'rgba(157,215,224,0.98)',
+                ringColor: 'rgba(91,163,172,0.26)',
+                badgeBackground: 'rgba(244,255,255,0.9)',
+                badgeColor: '#4d7d88',
                 action: 'chat'
             },
             forum: {
@@ -453,10 +465,16 @@
                 label: '论坛',
                 subtitle: 'FORUM',
                 icon: 'users',
+                badgeIcon: 'message-square',
                 gradientStart: 'rgba(251,253,255,0.96)',
                 gradientEnd: 'rgba(196,227,220,0.98)',
                 glow: 'rgba(114,181,160,0.34)',
                 iconColor: '#4f7d72',
+                orbStart: 'rgba(240,251,247,0.96)',
+                orbEnd: 'rgba(170,219,205,0.98)',
+                ringColor: 'rgba(85,148,129,0.24)',
+                badgeBackground: 'rgba(248,255,252,0.9)',
+                badgeColor: '#4f7d72',
                 action: 'forum'
             },
             checkin: {
@@ -464,10 +482,16 @@
                 label: '查岗',
                 subtitle: 'CHECK',
                 icon: 'map-pin',
+                badgeIcon: 'navigation',
                 gradientStart: 'rgba(255,252,247,0.96)',
                 gradientEnd: 'rgba(244,217,180,0.98)',
                 glow: 'rgba(214,161,96,0.3)',
                 iconColor: '#9a7240',
+                orbStart: 'rgba(255,247,238,0.96)',
+                orbEnd: 'rgba(236,191,138,0.98)',
+                ringColor: 'rgba(173,123,61,0.22)',
+                badgeBackground: 'rgba(255,252,247,0.9)',
+                badgeColor: '#9a7240',
                 action: 'modal'
             },
             game: {
@@ -475,10 +499,16 @@
                 label: '游戏',
                 subtitle: 'PLAY',
                 icon: 'crosshair',
+                badgeIcon: 'zap',
                 gradientStart: 'rgba(255,250,248,0.96)',
                 gradientEnd: 'rgba(242,204,194,0.98)',
                 glow: 'rgba(215,132,116,0.32)',
                 iconColor: '#a76457',
+                orbStart: 'rgba(255,244,241,0.96)',
+                orbEnd: 'rgba(233,168,154,0.98)',
+                ringColor: 'rgba(179,105,88,0.24)',
+                badgeBackground: 'rgba(255,246,242,0.92)',
+                badgeColor: '#a76457',
                 action: 'modal'
             },
             shopping: {
@@ -486,10 +516,16 @@
                 label: '购物',
                 subtitle: 'SHOP',
                 icon: 'shopping-bag',
+                badgeIcon: 'tag',
                 gradientStart: 'rgba(255,251,252,0.96)',
                 gradientEnd: 'rgba(240,206,220,0.98)',
                 glow: 'rgba(202,132,163,0.3)',
                 iconColor: '#9b607a',
+                orbStart: 'rgba(255,244,250,0.96)',
+                orbEnd: 'rgba(228,177,201,0.98)',
+                ringColor: 'rgba(164,101,130,0.24)',
+                badgeBackground: 'rgba(255,246,251,0.92)',
+                badgeColor: '#9b607a',
                 action: 'modal'
             },
             baby: {
@@ -497,25 +533,38 @@
                 label: '崽崽',
                 subtitle: 'BABY',
                 icon: 'heart',
+                badgeIcon: 'star',
                 gradientStart: 'rgba(255,251,248,0.96)',
                 gradientEnd: 'rgba(244,219,196,0.98)',
                 glow: 'rgba(221,161,120,0.3)',
                 iconColor: '#a9704a',
+                orbStart: 'rgba(255,247,240,0.96)',
+                orbEnd: 'rgba(239,197,159,0.98)',
+                ringColor: 'rgba(175,122,78,0.24)',
+                badgeBackground: 'rgba(255,250,245,0.92)',
+                badgeColor: '#a9704a',
                 action: 'archive-char'
             },
             offline: {
                 id: 'offline',
-                label: '线下',
-                subtitle: 'OFFLINE',
-                icon: 'wifi-off',
+                label: '线下应用',
+                subtitle: 'LOCAL',
+                icon: 'map',
+                badgeIcon: 'wifi-off',
                 gradientStart: 'rgba(249,252,250,0.96)',
                 gradientEnd: 'rgba(208,223,214,0.98)',
                 glow: 'rgba(134,170,149,0.3)',
                 iconColor: '#5f776a',
+                orbStart: 'rgba(241,250,244,0.96)',
+                orbEnd: 'rgba(170,203,183,0.98)',
+                ringColor: 'rgba(95,128,109,0.24)',
+                badgeBackground: 'rgba(246,252,248,0.92)',
+                badgeColor: '#5f776a',
                 action: 'modal'
             }
         };
         const DEFAULT_HOME_APP_ORDER = ['archive', 'chat', 'forum', 'checkin', 'game', 'shopping', 'baby', 'offline'];
+        const REQUIRED_HOME_APP_IDS = ['game', 'shopping', 'baby', 'offline'];
         const DEFAULT_API_CHAT_SETTINGS = {
             key: API_CHAT_SETTINGS_KEY,
             presetName: '默认预设',
@@ -560,6 +609,7 @@
         let securityFormState = {
             enabled: DEFAULT_SECURITY_SETTINGS.enabled
         };
+        let chatSubscreenZIndexSeed = 32;
         let profileSaveFeedbackTimer = null;
         let apiChatSaveFeedbackTimer = null;
         let apiVoiceSaveFeedbackTimer = null;
@@ -726,7 +776,7 @@
                 seenIds.add(id);
                 items.push({
                     id,
-                    visible: item?.visible !== false
+                    visible: REQUIRED_HOME_APP_IDS.includes(id) ? true : item?.visible !== false
                 });
             });
 
@@ -741,6 +791,17 @@
                 items,
                 updatedAt: Number(settings.updatedAt) || 0
             };
+        }
+
+        function isHomeAppsStateRepairNeeded(savedSettings = {}, normalizedSettings = createDefaultHomeAppsState()) {
+            const rawItems = Array.isArray(savedSettings?.items) ? savedSettings.items : [];
+            if (rawItems.length !== normalizedSettings.items.length) return true;
+
+            return normalizedSettings.items.some((item, index) => {
+                const rawId = String(rawItems[index]?.id || '').trim();
+                const rawVisible = REQUIRED_HOME_APP_IDS.includes(rawId) ? true : rawItems[index]?.visible !== false;
+                return rawId !== item.id || rawVisible !== item.visible;
+            });
         }
 
         function getResolvedHomeApps() {
@@ -767,10 +828,20 @@
                 button.style.setProperty('--app-grad-end', app.gradientEnd);
                 button.style.setProperty('--app-glow', app.glow);
                 button.style.setProperty('--app-icon-color', app.iconColor);
+                button.style.setProperty('--app-orb-start', app.orbStart || app.gradientStart);
+                button.style.setProperty('--app-orb-end', app.orbEnd || app.gradientEnd);
+                button.style.setProperty('--app-ring-color', app.ringColor || 'rgba(255,255,255,0.72)');
+                button.style.setProperty('--app-badge-bg', app.badgeBackground || 'rgba(255,255,255,0.88)');
+                button.style.setProperty('--app-badge-color', app.badgeColor || app.iconColor);
 
                 const icon = document.createElement('div');
                 icon.className = 'app-icon';
-                icon.innerHTML = `<i data-feather="${app.icon}"></i>`;
+                icon.innerHTML = `
+                    <span class="app-icon-orb"></span>
+                    <span class="app-icon-ring"></span>
+                    <i data-feather="${app.icon}"></i>
+                    ${app.badgeIcon ? `<span class="app-icon-badge"><i data-feather="${app.badgeIcon}"></i></span>` : ''}
+                `;
 
                 const copy = document.createElement('div');
                 copy.className = 'app-item-copy';
@@ -793,9 +864,22 @@
         }
 
         async function initHomeAppsData() {
-            const savedHomeApps = await appDB.getHomeApps();
-            homeAppsState = normalizeHomeAppsState(savedHomeApps || createDefaultHomeAppsState());
-            renderHomeAppGrid();
+            try {
+                const savedHomeApps = await appDB.getHomeApps();
+                homeAppsState = normalizeHomeAppsState(savedHomeApps || createDefaultHomeAppsState());
+                renderHomeAppGrid();
+
+                if (savedHomeApps && isHomeAppsStateRepairNeeded(savedHomeApps, homeAppsState)) {
+                    homeAppsState = {
+                        ...homeAppsState,
+                        updatedAt: Date.now()
+                    };
+                    await appDB.saveHomeApps(homeAppsState);
+                }
+            } catch (error) {
+                homeAppsState = createDefaultHomeAppsState();
+                renderHomeAppGrid();
+            }
         }
 
         function openHomeApp(appId, event = null) {
@@ -839,8 +923,8 @@
                     note: '当前先保留视觉入口，不强行塞入占位页面。'
                 },
                 offline: {
-                    title: '线下入口',
-                    lines: ['桌面已加入线下图标。', '适合后续接本地活动、到店记录或离线工具。'],
+                    title: '线下应用入口',
+                    lines: ['桌面已加入线下应用图标。', '适合后续接本地活动、到店记录或离线工具。'],
                     note: '目前先作为主题化桌面入口存在。'
                 }
             };
@@ -1551,7 +1635,7 @@
             return isPrivateTarget ? 'http://' : 'https://';
         }
 
-        function normalizeApiBaseUrl(rawUrl = '') {
+        function normalizeApiUrlInput(rawUrl = '') {
             const input = String(rawUrl || '').trim();
             if (!input) return '';
 
@@ -1561,6 +1645,23 @@
 
             try {
                 const url = new URL(withScheme);
+                const sanitizedPath = url.pathname.replace(/\/+$/, '');
+                return `${url.origin}${sanitizedPath}`;
+            } catch (error) {
+                return '';
+            }
+        }
+
+        function isApiChatCompletionLikePath(pathname = '') {
+            return /\/(chat\/completions?|completions?|api\/chat|api\/generate)\/?$/i.test(String(pathname || '').trim());
+        }
+
+        function resolveApiChatRequestBaseUrl(rawUrl = '') {
+            const normalizedInput = normalizeApiUrlInput(rawUrl);
+            if (!normalizedInput) return '';
+
+            try {
+                const url = new URL(normalizedInput);
                 const sanitizedPath = url.pathname
                     .replace(/\/(chat\/completions?|completions?|api\/chat|api\/generate)\/?$/i, '')
                     .replace(/\/+$/, '');
@@ -1568,6 +1669,15 @@
             } catch (error) {
                 return '';
             }
+        }
+
+        function getResponseContentType(response) {
+            return String(response?.headers?.get?.('content-type') || '').toLowerCase();
+        }
+
+        function isHtmlLikeContentType(contentType = '') {
+            const normalized = String(contentType || '').toLowerCase();
+            return normalized.includes('text/html') || normalized.includes('application/xhtml+xml');
         }
 
         function isPrivateOrLocalHost(hostname = '') {
@@ -1636,7 +1746,8 @@
             if (!hint) return;
 
             const trimmed = String(rawUrl || '').trim();
-            const normalized = normalizeApiBaseUrl(trimmed);
+            const normalizedInput = normalizeApiUrlInput(trimmed);
+            const resolvedBase = resolveApiChatRequestBaseUrl(trimmed);
 
             if (!trimmed) {
                 delete hint.dataset.tone;
@@ -1644,15 +1755,20 @@
                 return;
             }
 
-            if (!normalized) {
+            if (!normalizedInput) {
                 hint.dataset.tone = 'error';
                 hint.innerText = '当前接口网址无法识别，请输入完整域名或可访问的局域网地址。';
                 return;
             }
 
-            const providerKind = detectApiChatProviderKind(normalized);
+            const providerKind = detectApiChatProviderKind(normalizedInput);
             hint.dataset.tone = 'success';
-            hint.innerText = `已识别为 ${providerKind}，请求基址会按 ${normalized} 兼容处理。若接口地址直接填到 /chat/completions，也会自动回退到上级基址。`;
+            if (isApiChatCompletionLikePath(new URL(normalizedInput).pathname)) {
+                hint.innerText = `已识别为 ${providerKind}，将优先直连 ${normalizedInput}，同时保留 ${resolvedBase} 的兼容回退候选，不再自动删掉你填写的 /v1/chat/completions。`;
+                return;
+            }
+
+            hint.innerText = `已识别为 ${providerKind}，请求基址会按 ${resolvedBase} 兼容处理，并额外补充 /v1/chat/completions 等候选。`;
         }
 
         function updateApiChatTemperatureValue(value) {
@@ -1822,7 +1938,7 @@
             return normalizeApiChatSettingsState({
                 ...apiChatSettingsState,
                 presetName: document.getElementById('api-chat-preset-name')?.value.trim() || DEFAULT_API_CHAT_SETTINGS.presetName,
-                apiUrl: normalizeUrl ? normalizeApiBaseUrl(apiUrlField?.value || '') : String(apiUrlField?.value || '').trim(),
+                apiUrl: normalizeUrl ? normalizeApiUrlInput(apiUrlField?.value || '') : String(apiUrlField?.value || '').trim(),
                 apiKey: document.getElementById('api-chat-api-key')?.value.trim() || '',
                 model: document.getElementById('api-chat-model')?.value.trim() || '',
                 temperature: document.getElementById('api-chat-temperature')?.value || DEFAULT_API_CHAT_SETTINGS.temperature,
@@ -1873,7 +1989,7 @@
         }
 
         function buildApiChatModelEndpointCandidates(baseUrl = '') {
-            const normalized = normalizeApiBaseUrl(baseUrl);
+            const normalized = resolveApiChatRequestBaseUrl(baseUrl);
             if (!normalized) return [];
 
             const candidates = [];
@@ -1883,12 +1999,18 @@
 
             const cleanBase = normalized.replace(/\/+$/, '');
             const versionlessBase = cleanBase.replace(/\/v\d+(?:beta)?$/i, '');
+            const isVersionedBase = /\/v\d+(?:beta)?$/i.test(cleanBase);
 
-            addCandidate(`${cleanBase}/models`);
-            if (!/\/v\d+(?:beta)?$/i.test(cleanBase)) addCandidate(`${cleanBase}/v1/models`);
+            if (isVersionedBase) {
+                addCandidate(`${cleanBase}/models`);
+            } else {
+                addCandidate(`${cleanBase}/v1/models`);
+                addCandidate(`${cleanBase}/models`);
+            }
             addCandidate(`${cleanBase}/api/tags`);
 
             if (versionlessBase && versionlessBase !== cleanBase) {
+                addCandidate(`${versionlessBase}/v1/models`);
                 addCandidate(`${versionlessBase}/models`);
                 addCandidate(`${versionlessBase}/api/tags`);
             }
@@ -2117,7 +2239,7 @@
             if (event) event.stopPropagation();
 
             const rawApiUrl = document.getElementById('api-chat-api-url')?.value.trim() || '';
-            const normalizedApiUrl = normalizeApiBaseUrl(rawApiUrl);
+            const normalizedApiUrl = normalizeApiUrlInput(rawApiUrl);
 
             if (rawApiUrl && !normalizedApiUrl) {
                 setApiChatStatus('接口网址格式无效，请检查后再保存。', 'error');
@@ -2199,7 +2321,7 @@
                 pullButton.innerText = '拉取中';
             }
             setApiChatStatus('正在尝试兼容外网 API、国内 API 与自营 API 的模型列表接口。', 'working');
-            setApiChatModelStatus('正在依次尝试 `/models`、`/v1/models` 与部分自营服务的 `/api/tags`。', 'working');
+            setApiChatModelStatus('正在依次尝试 `/v1/models`、`/models` 与部分自营服务的 `/api/tags`。', 'working');
 
             try {
                 for (const endpoint of endpointCandidates) {
@@ -2211,12 +2333,28 @@
                                 redirect: 'follow'
                             });
 
+                            const contentType = getResponseContentType(response);
+                            const rawResponseText = await response.text();
+
                             if (!response.ok) {
                                 lastError = `${response.status} ${response.statusText}`.trim();
+                                if (rawResponseText) lastError = `${lastError} ${rawResponseText.slice(0, 180)}`.trim();
                                 continue;
                             }
 
-                            const payload = await response.json();
+                            if (isHtmlLikeContentType(contentType)) {
+                                lastError = `命中了网页响应而不是模型接口：${endpoint}`;
+                                continue;
+                            }
+
+                            let payload = null;
+                            try {
+                                payload = JSON.parse(rawResponseText);
+                            } catch (error) {
+                                lastError = '模型接口返回成功，但响应体不是合法 JSON。';
+                                continue;
+                            }
+
                             const modelIds = extractModelIdsFromResponse(payload);
                             if (!modelIds.length) {
                                 lastError = '接口已返回成功响应，但未解析出模型列表';
@@ -2402,13 +2540,31 @@
         const NETWORK_STATE_STORAGE_KEY = 'yuNetworkState';
         const NETWORK_SESSION_STORAGE_KEY = 'yuNetworkSession';
         const NETWORK_PRESET_ACCOUNTS = [
-            { account: '2305201466', password: 'tu041031' },
+            { account: '2305201466', password: 'zhou041031' },
             { account: '2967105312', password: 'li051205' }
         ];
         let networkState = null;
         let currentNetworkAccountId = '';
         let currentOnlineThreadId = null;
         let currentOnlinePickerTargetAccountId = '';
+        const CHAT_THREAD_STICKER_CHOICES = [
+            { value: '😊', label: '开心' },
+            { value: '🥺', label: '委屈' },
+            { value: '😭', label: '大哭' },
+            { value: '😴', label: '困了' },
+            { value: '😡', label: '生气' },
+            { value: '😳', label: '脸红' },
+            { value: '😎', label: '得意' },
+            { value: '🤍', label: '白心' },
+            { value: '🥰', label: '贴贴' },
+            { value: '🤔', label: '疑问' },
+            { value: '😈', label: '坏笑' },
+            { value: '😼', label: '猫猫' }
+        ];
+        let chatThreadComposerState = {
+            role: { toolsOpen: false, stickerOpen: false },
+            online: { toolsOpen: false, stickerOpen: false }
+        };
 
         function normalizeChatRoleMessages(messages = []) {
             if (!Array.isArray(messages)) return [];
@@ -2786,24 +2942,39 @@
         }
 
         function buildApiChatCompletionEndpointCandidates(baseUrl = '') {
-            const normalized = normalizeApiBaseUrl(baseUrl);
-            if (!normalized) return [];
+            const normalizedInput = normalizeApiUrlInput(baseUrl);
+            const normalizedBase = resolveApiChatRequestBaseUrl(baseUrl);
+            if (!normalizedInput && !normalizedBase) return [];
 
             const candidates = [];
             const addCandidate = url => {
                 if (url && !candidates.includes(url)) candidates.push(url);
             };
 
-            const cleanBase = normalized.replace(/\/+$/, '');
-            const versionlessBase = cleanBase.replace(/\/v\d+(?:beta)?$/i, '');
+            if (normalizedInput) {
+                try {
+                    const inputPathname = new URL(normalizedInput).pathname;
+                    if (isApiChatCompletionLikePath(inputPathname)) addCandidate(normalizedInput.replace(/\/+$/, ''));
+                } catch (error) {
+                    // ignore invalid normalized input here
+                }
+            }
 
-            addCandidate(`${cleanBase}/chat/completions`);
-            if (!/\/v\d+(?:beta)?$/i.test(cleanBase)) addCandidate(`${cleanBase}/v1/chat/completions`);
+            const cleanBase = normalizedBase.replace(/\/+$/, '');
+            const versionlessBase = cleanBase.replace(/\/v\d+(?:beta)?$/i, '');
+            const isVersionedBase = /\/v\d+(?:beta)?$/i.test(cleanBase);
+
+            if (isVersionedBase) {
+                addCandidate(`${cleanBase}/chat/completions`);
+            } else {
+                addCandidate(`${cleanBase}/v1/chat/completions`);
+                addCandidate(`${cleanBase}/chat/completions`);
+            }
             addCandidate(`${cleanBase}/api/chat`);
 
             if (versionlessBase && versionlessBase !== cleanBase) {
-                addCandidate(`${versionlessBase}/chat/completions`);
                 addCandidate(`${versionlessBase}/v1/chat/completions`);
+                addCandidate(`${versionlessBase}/chat/completions`);
                 addCandidate(`${versionlessBase}/api/chat`);
             }
 
@@ -2855,12 +3026,13 @@
                     `用户身份牌：${thread.identityProfileName || '未命名身份牌'}；设定：${identitySummary}`,
                     `已绑定世界书（${worldbooks.length} 条）：\n${worldbookText}`,
                     `本轮调用参数：模型=${settings.model || '未设置'}；温度=${safeTemperature}；上下文上限=${safeContextCount}；实际携带=${carriedContextCount}。`,
+                    '若这一轮特别适合沉淀成角色日记，可以把 type 改成 "create_diary"，并额外给出 title、mood、location、content；但 text 仍然必须保留为角色此刻真正发给用户的话。',
                     '如果这一轮是空输入触发，就让角色主动接一句并推进一小步，但仍然不能替用户发言。'
                 ].join('\n\n'),
                 rulePrompt: [
                     '强制规则：',
                     '1. 只输出一个合法 JSON 对象，禁止 Markdown、解释、前后缀、代码块和多对象拼接。',
-                    '2. JSON 顶层必须带 type，建议固定为 "role_reply"，并同时给出 text、emotion、state、worldbook_refs、memory。',
+                    '2. JSON 顶层必须带 type；常规回复用 "role_reply"，需要同步角色日记时可用 "create_diary"。两种情况下都必须给出 text、emotion、state、worldbook_refs、memory。',
                     '3. text 只能写角色本轮真实会说或会做的内容，绝不替用户说话，绝不替用户决定，也绝不写 OOC 解释。',
                     '4. 回复必须贴合角色设定、用户身份牌、世界书与最近上下文；没有依据就收住，不准乱编世界观事实。',
                     '5. worldbook_refs 只写本轮真实用到的世界书标题；没用到就写空数组。memory 只写本轮延续的关键上下文。',
@@ -2925,6 +3097,9 @@
                         .map(part => (typeof part === 'string' ? part : part?.text || part?.content || ''))
                         .join('');
                 }
+                if (choice.message?.content && typeof choice.message.content === 'object') {
+                    return safeJsonStringify(choice.message.content);
+                }
                 if (typeof choice.text === 'string') return choice.text;
             }
 
@@ -2934,9 +3109,17 @@
                     .map(part => (typeof part === 'string' ? part : part?.text || part?.content || ''))
                     .join('');
             }
+            if (payload.message?.content && typeof payload.message.content === 'object') {
+                return safeJsonStringify(payload.message.content);
+            }
+            if (typeof payload.text === 'string') return payload.text;
+            if (typeof payload.reply === 'string') return payload.reply;
             if (typeof payload.response === 'string') return payload.response;
             if (typeof payload.output_text === 'string') return payload.output_text;
+            if (typeof payload.message === 'string') return payload.message;
             if (typeof payload.content === 'string') return payload.content;
+            if (payload.content && typeof payload.content === 'object') return safeJsonStringify(payload.content);
+            if (typeof payload.dialogue === 'string') return payload.dialogue;
 
             return '';
         }
@@ -2971,9 +3154,15 @@
                             });
 
                             const rawResponseText = await response.text();
+                            const contentType = getResponseContentType(response);
                             if (!response.ok) {
                                 lastError = `${response.status} ${response.statusText}`.trim();
                                 if (rawResponseText) lastError = `${lastError} ${rawResponseText.slice(0, 180)}`.trim();
+                                continue;
+                            }
+
+                            if (isHtmlLikeContentType(contentType)) {
+                                lastError = `命中了网页响应而不是聊天接口：${endpoint}`;
                                 continue;
                             }
 
@@ -2981,20 +3170,21 @@
                             try {
                                 responsePayload = JSON.parse(rawResponseText);
                             } catch (error) {
-                                const directPayload = parseChatRoleAssistantPayload(rawResponseText);
+                                const directPayload = parseChatRoleAssistantPayload(rawResponseText)
+                                    || createPlainTextChatRolePayload(rawResponseText);
                                 if (directPayload && directPayload.displayText) return directPayload;
-                                lastError = '接口成功返回，但响应体不是可解析的 JSON。';
+                                lastError = '接口成功返回，但响应体既不是可解析 JSON，也没有可展示文本。';
                                 continue;
                             }
 
+                            const directObjectPayload = normalizeLooseChatRolePayload(responsePayload);
+                            if (directObjectPayload && directObjectPayload.displayText) return directObjectPayload;
+
                             const rawReplyText = extractChatReplyTextFromPayload(responsePayload);
-                            const normalizedReply = parseChatRoleAssistantPayload(rawReplyText);
-                            if (!normalizedReply) {
-                                lastError = '模型返回内容不是合法 JSON 对象，或缺少 type 字段。';
-                                continue;
-                            }
-                            if (!normalizedReply.displayText) {
-                                lastError = 'JSON 对象缺少可展示文本字段（text / reply / content / message）。';
+                            const normalizedReply = parseChatRoleAssistantPayload(rawReplyText)
+                                || createPlainTextChatRolePayload(rawReplyText);
+                            if (!normalizedReply || !normalizedReply.displayText) {
+                                lastError = '接口成功返回，但没有提取到可展示的回复内容。';
                                 continue;
                             }
 
@@ -3016,50 +3206,50 @@
             button.innerText = chatRoleRequestInFlight ? '发送中' : '发送';
         }
 
-        async function sendChatRoleMessage() {
+        async function sendChatRoleMessage(customMessage = null) {
             if (chatRoleRequestInFlight) return;
 
             const input = document.getElementById('chat-role-thread-input');
-            const thread = chatRoleThreads.find(item => item.id === currentChatRoleThreadId);
+            const thread = getCurrentChatRoleThread();
             if (!input || !thread) return;
 
-            const text = input.value.trim();
+            const draftMessage = customMessage || createTextChatThreadMessage(input.value.trim());
+            const requestText = String(draftMessage?.rawText || draftMessage?.text || '').trim();
             const now = Date.now();
             let requestThread = thread;
             chatRoleRequestInFlight = true;
             updateChatRoleSendButtonState();
 
-            if (text) {
-                thread.messages.push({
-                    id: `user-${now}`,
-                    role: 'user',
-                    text,
-                    rawText: text,
-                    createdAt: now
-                });
+            if (draftMessage) {
+                thread.messages.push(buildPersistedChatThreadUserMessage(draftMessage, now));
                 thread.updatedAt = now;
                 chatRoleThreads.sort((a, b) => b.updatedAt - a.updatedAt);
                 requestThread = {
                     ...thread,
-                    messages: thread.messages.slice(0, -1)
+                    messages: thread.messages.slice(0, -1),
+                    diaries: normalizeChatRoleDiaryEntries(thread.diaries)
                 };
-                input.value = '';
-                syncChatRoleThreadInputHeight(input);
+                if (!customMessage) {
+                    input.value = '';
+                    syncChatRoleThreadInputHeight(input);
+                }
+                closeChatThreadComposerUi('role');
                 await persistChatRoleThreads();
                 renderChatRoleThreadList();
                 renderChatRoleThreadDetail();
                 renderChatRoleThreadMessages();
             }
             setChatRoleThreadStatus(
-                text
+                draftMessage
                     ? '正在向已配置的 API 请求角色回复。会携带已绑定的用户身份牌、世界书和最近上下文。'
                     : '空输入已触发主动回复。正在向 API 请求角色按设定主动接一句。',
                 'working'
             );
 
             try {
-                const reply = await requestChatRoleAssistantReply(requestThread, text);
+                const reply = await requestChatRoleAssistantReply(requestThread, requestText);
                 const replyTime = Date.now();
+                const diaryEntry = extractChatRoleDiaryFromPayload(reply.object, thread);
 
                 thread.messages.push({
                     id: `assistant-${replyTime}`,
@@ -3074,6 +3264,9 @@
                     memory: reply.memory,
                     createdAt: replyTime
                 });
+                if (diaryEntry) {
+                    thread.diaries = normalizeChatRoleDiaryEntries([diaryEntry, ...(thread.diaries || [])]);
+                }
 
                 thread.updatedAt = replyTime;
                 chatRoleThreads.sort((a, b) => b.updatedAt - a.updatedAt);
@@ -3082,11 +3275,16 @@
                 renderChatRoleThreadList();
                 renderChatRoleThreadDetail();
                 renderChatRoleThreadMessages();
-                setChatRoleThreadStatus('本轮角色回复已完成。返回内容已校验为只包含一个带 type 字段的 JSON 对象。', 'success');
+                setChatRoleThreadStatus(
+                    diaryEntry
+                        ? '本轮角色回复已完成，并且已经同步写入角色日记。'
+                        : '本轮角色回复已完成。返回内容已校验为只包含一个带 type 字段的 JSON 对象。',
+                    'success'
+                );
                 input.focus();
             } catch (error) {
                 const fallbackTime = Date.now();
-                const fallbackText = createChatRoleAutoReply(thread, text || '继续聊下去');
+                const fallbackText = createChatRoleAutoReply(thread, requestText || '继续聊下去');
                 thread.messages.push({
                     id: `assistant-local-${fallbackTime}`,
                     role: 'assistant',
@@ -3209,6 +3407,13 @@
             return value.map(item => String(item || '').trim()).filter(Boolean);
         }
 
+        function normalizeChatThreadMessageKind(value = '') {
+            const normalized = String(value || '').trim().toLowerCase();
+            return ['text', 'voice', 'image', 'photo', 'location', 'sticker', 'call', 'video'].includes(normalized)
+                ? normalized
+                : 'text';
+        }
+
         function getChatRolePayloadDisplayText(payload = {}) {
             const candidateKeys = ['text', 'reply', 'content', 'message', 'dialogue'];
             for (const key of candidateKeys) {
@@ -3236,6 +3441,44 @@
             };
         }
 
+        function createPlainTextChatRolePayload(displayText = '', payload = null, rawText = '') {
+            const resolvedText = cleanJsonLikeText(displayText);
+            if (!resolvedText) return null;
+
+            const sourcePayload = payload && typeof payload === 'object' && !Array.isArray(payload)
+                ? { ...payload }
+                : {};
+            const type = String(sourcePayload.type || 'role_reply').trim() || 'role_reply';
+            const object = {
+                ...sourcePayload,
+                type
+            };
+
+            if (!getChatRolePayloadDisplayText(object)) object.text = resolvedText;
+
+            return {
+                object,
+                rawText: String(rawText || '').trim() || safeJsonStringify(object) || resolvedText,
+                type,
+                displayText: getChatRolePayloadDisplayText(object) || resolvedText,
+                emotion: String(object.emotion || object.mood || '').trim(),
+                state: String(object.state || object.intent || '').trim(),
+                worldbookRefs: normalizeStringArrayField(object.worldbook_refs || object.worldbookRefs || object.refs),
+                memory: normalizeStringArrayField(object.memory || object.context || object.context_used || object.contextUsed)
+            };
+        }
+
+        function normalizeLooseChatRolePayload(payload) {
+            const strictPayload = normalizeParsedChatRolePayload(payload);
+            if (strictPayload) return strictPayload;
+            if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return null;
+
+            const displayText = getChatRolePayloadDisplayText(payload);
+            if (!displayText) return null;
+
+            return createPlainTextChatRolePayload(displayText, payload, safeJsonStringify(payload));
+        }
+
         function parseChatRoleAssistantPayload(rawText = '') {
             const directText = cleanJsonLikeText(rawText);
             const parseAttempts = [directText, extractFirstJsonObjectString(directText)].filter(Boolean);
@@ -3261,14 +3504,19 @@
                     const role = message?.role === 'user' ? 'user' : 'assistant';
                     const createdAt = Number(message?.createdAt) || (Date.now() + index);
                     const rawText = String(message?.rawText || message?.text || '').trim();
+                    const messageKind = normalizeChatThreadMessageKind(message?.messageKind);
                     const parsedPayload = role === 'assistant'
                         ? normalizeParsedChatRolePayload(message?.payload) || parseChatRoleAssistantPayload(rawText)
                         : null;
                     const text = role === 'assistant'
                         ? (parsedPayload?.displayText || String(message?.text || '').trim() || rawText)
                         : String(message?.text || rawText).trim();
+                    const mediaUrl = String(message?.mediaUrl || '').trim();
+                    const locationName = String(message?.locationName || '').trim();
+                    const locationAddress = String(message?.locationAddress || '').trim();
+                    const stickerText = String(message?.stickerText || '').trim();
 
-                    if (role === 'user' && !text) return null;
+                    if (role === 'user' && !text && !mediaUrl && !stickerText && !locationName) return null;
                     if (role === 'assistant' && !text && !parsedPayload?.rawText) return null;
 
                     return {
@@ -3284,10 +3532,41 @@
                         state: parsedPayload?.state || '',
                         worldbookRefs: parsedPayload?.worldbookRefs || [],
                         memory: parsedPayload?.memory || [],
+                        messageKind: role === 'assistant' ? 'text' : messageKind,
+                        mediaUrl,
+                        locationName,
+                        locationAddress,
+                        stickerText,
                         createdAt
                     };
                 })
                 .filter(Boolean);
+        }
+
+        function normalizeChatRoleDiaryEntries(entries = []) {
+            if (!Array.isArray(entries)) return [];
+
+            return entries
+                .map((entry, index) => {
+                    const createdAt = Number(entry?.createdAt) || (Date.now() + index);
+                    const title = String(entry?.title || '未命名日记').trim() || '未命名日记';
+                    const content = String(entry?.content || '').trim();
+                    const mood = String(entry?.mood || '').trim();
+                    const location = String(entry?.location || '').trim();
+
+                    if (!content && !title) return null;
+
+                    return {
+                        id: String(entry?.id || `diary-${createdAt}-${index}`),
+                        title,
+                        mood,
+                        location,
+                        content,
+                        createdAt
+                    };
+                })
+                .filter(Boolean)
+                .sort((left, right) => right.createdAt - left.createdAt);
         }
 
         function normalizeChatRoleThreads(threads = []) {
@@ -3312,7 +3591,8 @@
                         worldbookIds: sortNumericIdList(thread?.worldbookIds),
                         createdAt,
                         updatedAt,
-                        messages: normalizeChatRoleMessages(thread?.messages)
+                        messages: normalizeChatRoleMessages(thread?.messages),
+                        diaries: normalizeChatRoleDiaryEntries(thread?.diaries)
                     };
                 })
                 .sort((a, b) => b.updatedAt - a.updatedAt);
@@ -3322,10 +3602,73 @@
             return String(message?.text || '').trim();
         }
 
+        function getChatThreadMessagePreviewText(message) {
+            const kind = normalizeChatThreadMessageKind(message?.messageKind);
+            switch (kind) {
+                case 'voice':
+                    return '[语音]';
+                case 'image':
+                    return '[图片]';
+                case 'photo':
+                    return '[照片]';
+                case 'location':
+                    return `[定位] ${String(message?.locationName || message?.text || '共享位置').trim()}`.trim();
+                case 'sticker':
+                    return `[表情] ${String(message?.stickerText || message?.text || '').trim()}`.trim();
+                case 'call':
+                    return '[电话] 语音通话邀请';
+                case 'video':
+                    return '[视频] 视频通话邀请';
+                default:
+                    return String(message?.text || '').trim();
+            }
+        }
+
         function getChatRoleMessageRawContent(message) {
             if (!message) return '';
             if (message.role === 'assistant') return String(message.rawText || safeJsonStringify(message.payload) || message.text || '').trim();
-            return String(message.text || '').trim();
+            return String(message.rawText || message.text || '').trim();
+        }
+
+        function getCurrentChatRoleThread() {
+            return chatRoleThreads.find(item => item.id === currentChatRoleThreadId) || null;
+        }
+
+        function getCurrentChatRoleThreadDiaries() {
+            return normalizeChatRoleDiaryEntries(getCurrentChatRoleThread()?.diaries);
+        }
+
+        function extractChatRoleDiaryFromPayload(payload = {}, thread = null) {
+            const source = payload && typeof payload === 'object' && !Array.isArray(payload) ? payload : null;
+            if (!source) return null;
+
+            const nestedDiary = source.diary && typeof source.diary === 'object' && !Array.isArray(source.diary)
+                ? source.diary
+                : null;
+            const type = String(source.type || '').trim().toLowerCase();
+            const supportsDiary = ['create_diary', 'diary', 'diary_entry'].includes(type) || Boolean(nestedDiary);
+            if (!supportsDiary) return null;
+
+            const title = String(nestedDiary?.title || source.title || '').trim() || `${thread?.name || '角色'}的日记`;
+            const mood = String(nestedDiary?.mood || source.mood || source.emotion || '').trim();
+            const location = String(nestedDiary?.location || source.location || '').trim();
+            const content = String(
+                nestedDiary?.content
+                || source.diary_content
+                || source.diaryContent
+                || source.content
+                || ''
+            ).trim();
+            if (!content) return null;
+
+            return {
+                id: `diary-${Date.now()}`,
+                title,
+                mood,
+                location,
+                content,
+                createdAt: Date.now()
+            };
         }
 
         function getArchiveProfileById(id) {
@@ -3354,18 +3697,412 @@
         function buildChatRoleThreadFallbackPreview(thread) {
             const identityName = String(thread?.identityProfileName || '').trim();
             const worldbookCount = getChatRoleThreadWorldbooks(thread).length;
+            const diaryCount = normalizeChatRoleDiaryEntries(thread?.diaries).length;
             const segments = [];
             if (identityName) segments.push(`身份牌：${identityName}`);
             if (worldbookCount) segments.push(`世界书 ${worldbookCount} 条`);
+            if (diaryCount) segments.push(`日记 ${diaryCount} 篇`);
             return segments.length ? segments.join(' · ') : '已加入消息页，点击继续聊天。';
         }
 
         function getChatRoleThreadPreview(thread) {
             const lastMessage = thread?.messages?.[thread.messages.length - 1];
             return buildChatRoleSummary(
-                getChatRoleMessageDisplayText(lastMessage) || thread?.summary || buildChatRoleThreadFallbackPreview(thread),
+                getChatThreadMessagePreviewText(lastMessage) || thread?.summary || buildChatRoleThreadFallbackPreview(thread),
                 46
             ) || buildChatRoleThreadFallbackPreview(thread);
+        }
+
+        function getChatThreadComposerMode(target = 'role') {
+            return target === 'online' ? 'online' : 'role';
+        }
+
+        function getChatThreadComposerDomIds(target = 'role') {
+            const mode = getChatThreadComposerMode(target);
+            const prefix = mode === 'online' ? 'chat-online-thread' : 'chat-role-thread';
+            return {
+                mode,
+                tools: `${prefix}-tools`,
+                plusBtn: `${prefix}-plus-btn`,
+                stickerPanel: `${prefix}-sticker-panel`,
+                input: `${prefix}-input`,
+                imageInput: `${prefix}-image-input`,
+                photoInput: `${prefix}-photo-input`
+            };
+        }
+
+        function getChatThreadComposerUiState(target = 'role') {
+            return chatThreadComposerState[getChatThreadComposerMode(target)];
+        }
+
+        function syncChatThreadComposerUi(target = 'role') {
+            const ids = getChatThreadComposerDomIds(target);
+            const state = getChatThreadComposerUiState(target);
+            const tools = document.getElementById(ids.tools);
+            const plusBtn = document.getElementById(ids.plusBtn);
+            const stickerPanel = document.getElementById(ids.stickerPanel);
+
+            if (tools) {
+                tools.hidden = !state.toolsOpen;
+                tools.style.display = state.toolsOpen ? 'flex' : 'none';
+            }
+            if (plusBtn) {
+                plusBtn.classList.toggle('active', state.toolsOpen);
+                plusBtn.setAttribute('aria-expanded', state.toolsOpen ? 'true' : 'false');
+            }
+            if (stickerPanel) {
+                stickerPanel.hidden = !(state.toolsOpen && state.stickerOpen);
+                stickerPanel.style.display = state.toolsOpen && state.stickerOpen ? 'flex' : 'none';
+            }
+        }
+
+        function closeChatThreadComposerUi(target = 'role') {
+            const state = getChatThreadComposerUiState(target);
+            state.toolsOpen = false;
+            state.stickerOpen = false;
+            syncChatThreadComposerUi(target);
+        }
+
+        function toggleChatThreadTools(target = 'role') {
+            const state = getChatThreadComposerUiState(target);
+            state.toolsOpen = !state.toolsOpen;
+            if (!state.toolsOpen) state.stickerOpen = false;
+            syncChatThreadComposerUi(target);
+            feather.replace({ 'stroke-width': 1.2 });
+        }
+
+        function renderChatThreadStickerPanel(target = 'role') {
+            const ids = getChatThreadComposerDomIds(target);
+            const panel = document.getElementById(ids.stickerPanel);
+            if (!panel) return;
+
+            panel.innerHTML = '';
+            CHAT_THREAD_STICKER_CHOICES.forEach(choice => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'chat-thread-sticker-btn';
+                button.innerHTML = `
+                    <span class="chat-thread-sticker-emoji">${escapeHtml(choice.value)}</span>
+                    <span class="chat-thread-sticker-label">${escapeHtml(choice.label)}</span>
+                `;
+                button.addEventListener('click', () => sendChatThreadToolMessage(target, 'sticker', {
+                    stickerText: choice.value,
+                    label: choice.label
+                }));
+                panel.appendChild(button);
+            });
+        }
+
+        function toggleChatThreadStickerPanel(target = 'role') {
+            const state = getChatThreadComposerUiState(target);
+            state.toolsOpen = true;
+            state.stickerOpen = !state.stickerOpen;
+            renderChatThreadStickerPanel(target);
+            syncChatThreadComposerUi(target);
+        }
+
+        function setChatThreadStatus(target = 'role', message = '', tone = 'default') {
+            if (getChatThreadComposerMode(target) === 'online') {
+                setOnlineThreadStatus(message, tone);
+                return;
+            }
+            setChatRoleThreadStatus(message, tone);
+        }
+
+        function createTextChatThreadMessage(text = '') {
+            const normalizedText = String(text || '').trim();
+            if (!normalizedText) return null;
+            return {
+                messageKind: 'text',
+                text: normalizedText,
+                rawText: normalizedText,
+                mediaUrl: '',
+                locationName: '',
+                locationAddress: '',
+                stickerText: ''
+            };
+        }
+
+        function buildChatThreadActionMessage(action = 'text', payload = {}) {
+            const kind = normalizeChatThreadMessageKind(action);
+            switch (kind) {
+                case 'voice': {
+                    const transcript = String(payload.text || '').trim();
+                    if (!transcript) return null;
+                    return {
+                        messageKind: 'voice',
+                        text: transcript,
+                        rawText: `[发送了一段语音] ${transcript}`,
+                        mediaUrl: '',
+                        locationName: '',
+                        locationAddress: '',
+                        stickerText: ''
+                    };
+                }
+                case 'image':
+                case 'photo': {
+                    const mediaUrl = String(payload.mediaUrl || '').trim();
+                    if (!mediaUrl) return null;
+                    return {
+                        messageKind: kind,
+                        text: kind === 'photo' ? '刚拍的照片' : '来自相册的图片',
+                        rawText: kind === 'photo' ? '[发送了一张照片]' : '[发送了一张图片]',
+                        mediaUrl,
+                        locationName: '',
+                        locationAddress: '',
+                        stickerText: ''
+                    };
+                }
+                case 'location': {
+                    const locationName = String(payload.name || '').trim();
+                    if (!locationName) return null;
+                    const locationAddress = String(payload.address || 'Yu 共享位置').trim();
+                    return {
+                        messageKind: 'location',
+                        text: locationName,
+                        rawText: `[发送位置] ${locationName}${locationAddress ? ` · ${locationAddress}` : ''}`,
+                        mediaUrl: '',
+                        locationName,
+                        locationAddress,
+                        stickerText: ''
+                    };
+                }
+                case 'sticker': {
+                    const stickerText = String(payload.stickerText || payload.text || '').trim();
+                    if (!stickerText) return null;
+                    return {
+                        messageKind: 'sticker',
+                        text: String(payload.label || '表情').trim() || '表情',
+                        rawText: `[发送了一个表情] ${stickerText}`,
+                        mediaUrl: '',
+                        locationName: '',
+                        locationAddress: '',
+                        stickerText
+                    };
+                }
+                case 'call':
+                    return {
+                        messageKind: 'call',
+                        text: '语音通话邀请',
+                        rawText: '[发起语音通话邀请]',
+                        mediaUrl: '',
+                        locationName: '',
+                        locationAddress: '',
+                        stickerText: ''
+                    };
+                case 'video':
+                    return {
+                        messageKind: 'video',
+                        text: '视频通话邀请',
+                        rawText: '[发起视频通话邀请]',
+                        mediaUrl: '',
+                        locationName: '',
+                        locationAddress: '',
+                        stickerText: ''
+                    };
+                default:
+                    return createTextChatThreadMessage(payload.text || '');
+            }
+        }
+
+        function buildPersistedChatThreadUserMessage(message = {}, createdAt = Date.now()) {
+            return {
+                id: String(message.id || `user-${createdAt}`),
+                role: 'user',
+                text: String(message.text || '').trim(),
+                rawText: String(message.rawText || message.text || '').trim(),
+                messageKind: normalizeChatThreadMessageKind(message.messageKind),
+                mediaUrl: String(message.mediaUrl || '').trim(),
+                locationName: String(message.locationName || '').trim(),
+                locationAddress: String(message.locationAddress || '').trim(),
+                stickerText: String(message.stickerText || '').trim(),
+                createdAt
+            };
+        }
+
+        function buildPersistedOnlineThreadMessage(senderAccount = '', message = {}, createdAt = Date.now()) {
+            return {
+                id: String(message.id || `online-${senderAccount}-${createdAt}`),
+                senderAccount: String(senderAccount || '').trim(),
+                text: String(message.text || '').trim(),
+                messageKind: normalizeChatThreadMessageKind(message.messageKind),
+                mediaUrl: String(message.mediaUrl || '').trim(),
+                locationName: String(message.locationName || '').trim(),
+                locationAddress: String(message.locationAddress || '').trim(),
+                stickerText: String(message.stickerText || '').trim(),
+                createdAt
+            };
+        }
+
+        function openChatThreadFilePicker(target = 'role', action = 'image') {
+            const ids = getChatThreadComposerDomIds(target);
+            const inputId = action === 'photo' ? ids.photoInput : ids.imageInput;
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            input.value = '';
+            input.click();
+        }
+
+        function sendChatThreadToolMessage(target = 'role', action = 'text', payload = {}) {
+            const message = buildChatThreadActionMessage(action, payload);
+            if (!message) return;
+
+            if (getChatThreadComposerMode(target) === 'online') {
+                sendOnlineChatMessage(message);
+            } else {
+                void sendChatRoleMessage(message);
+            }
+            closeChatThreadComposerUi(target);
+        }
+
+        function handleChatThreadToolAction(target = 'role', action = 'text') {
+            const mode = getChatThreadComposerMode(target);
+            switch (normalizeChatThreadMessageKind(action)) {
+                case 'voice': {
+                    const transcript = prompt('输入语音内容');
+                    if (!transcript || !String(transcript).trim()) return;
+                    sendChatThreadToolMessage(mode, 'voice', { text: transcript });
+                    return;
+                }
+                case 'image':
+                case 'photo':
+                    openChatThreadFilePicker(mode, action);
+                    return;
+                case 'location': {
+                    const name = prompt('输入你想发送的位置', '例如：公司 / 家 / 地铁站');
+                    if (!name || !String(name).trim()) return;
+                    sendChatThreadToolMessage(mode, 'location', { name });
+                    return;
+                }
+                case 'sticker':
+                    toggleChatThreadStickerPanel(mode);
+                    return;
+                case 'call':
+                case 'video':
+                    sendChatThreadToolMessage(mode, action);
+                    return;
+                default:
+                    return;
+            }
+        }
+
+        function handleChatThreadImageSelect(event, target = 'role', action = 'image') {
+            const input = event?.target;
+            const file = input?.files?.[0];
+            if (!file) return;
+
+            if (!String(file.type || '').startsWith('image/')) {
+                setChatThreadStatus(target, '只能发送图片文件。', 'error');
+                input.value = '';
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                setChatThreadStatus(target, '图片过大，请选择 5MB 以内的图片。', 'error');
+                input.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = loadEvent => {
+                const mediaUrl = String(loadEvent?.target?.result || '').trim();
+                if (!mediaUrl) {
+                    setChatThreadStatus(target, '读取图片失败，请重试。', 'error');
+                    return;
+                }
+                sendChatThreadToolMessage(target, action, { mediaUrl });
+            };
+            reader.onerror = () => {
+                setChatThreadStatus(target, '读取图片失败，请重试。', 'error');
+            };
+            reader.readAsDataURL(file);
+            input.value = '';
+        }
+
+        function buildChatThreadRichMessageContent(message = {}) {
+            const kind = normalizeChatThreadMessageKind(message?.messageKind);
+            switch (kind) {
+                case 'voice':
+                    return {
+                        rich: true,
+                        html: `
+                            <div class="chat-message-card">
+                                <div class="chat-message-card-icon"><i data-feather="mic"></i></div>
+                                <div class="chat-message-card-main">
+                                    <div class="chat-message-card-title">语音</div>
+                                    <div class="chat-message-card-copy">${escapeHtml(message.text || '暂无转写内容').replace(/\n/g, '<br>')}</div>
+                                </div>
+                            </div>
+                        `
+                    };
+                case 'image':
+                case 'photo':
+                    return {
+                        rich: true,
+                        html: `
+                            <div class="chat-message-media">
+                                <img src="${escapeHtml(message.mediaUrl || '')}" alt="${kind === 'photo' ? '照片' : '图片'}">
+                                <div class="chat-message-media-meta">
+                                    <strong>${kind === 'photo' ? '照片' : '图片'}</strong>
+                                    <span>${escapeHtml(message.text || (kind === 'photo' ? '来自相机' : '来自相册'))}</span>
+                                </div>
+                            </div>
+                        `
+                    };
+                case 'location':
+                    return {
+                        rich: true,
+                        html: `
+                            <div class="chat-message-card">
+                                <div class="chat-message-card-icon"><i data-feather="map-pin"></i></div>
+                                <div class="chat-message-card-main">
+                                    <div class="chat-message-card-title">${escapeHtml(message.locationName || message.text || '共享位置')}</div>
+                                    <div class="chat-message-card-copy">${escapeHtml(message.locationAddress || 'Yu 共享位置')}</div>
+                                </div>
+                            </div>
+                        `
+                    };
+                case 'sticker':
+                    return {
+                        rich: true,
+                        html: `
+                            <div class="chat-message-sticker">
+                                <div class="chat-message-sticker-emoji">${escapeHtml(message.stickerText || '😊')}</div>
+                                <div class="chat-message-sticker-label">${escapeHtml(message.text || '表情')}</div>
+                            </div>
+                        `
+                    };
+                case 'call':
+                    return {
+                        rich: true,
+                        html: `
+                            <div class="chat-message-card">
+                                <div class="chat-message-card-icon"><i data-feather="phone"></i></div>
+                                <div class="chat-message-card-main">
+                                    <div class="chat-message-card-title">语音通话邀请</div>
+                                    <div class="chat-message-card-copy">已把电话邀请发到当前会话。</div>
+                                </div>
+                            </div>
+                        `
+                    };
+                case 'video':
+                    return {
+                        rich: true,
+                        html: `
+                            <div class="chat-message-card">
+                                <div class="chat-message-card-icon"><i data-feather="video"></i></div>
+                                <div class="chat-message-card-main">
+                                    <div class="chat-message-card-title">视频通话邀请</div>
+                                    <div class="chat-message-card-copy">已把视频邀请发到当前会话。</div>
+                                </div>
+                            </div>
+                        `
+                    };
+                default:
+                    return {
+                        rich: false,
+                        html: escapeHtml(message.text || '').replace(/\n/g, '<br>')
+                    };
+            }
         }
 
         function createChatRoleConfigState(thread = null) {
@@ -3471,12 +4208,22 @@
         function normalizeNetworkMessage(message = {}, index = 0) {
             const text = String(message?.text || '').trim();
             const senderAccount = String(message?.senderAccount || '').trim();
-            if (!text || !isPresetNetworkAccount(senderAccount)) return null;
+            const mediaUrl = String(message?.mediaUrl || '').trim();
+            const locationName = String(message?.locationName || '').trim();
+            const locationAddress = String(message?.locationAddress || '').trim();
+            const stickerText = String(message?.stickerText || '').trim();
+            const messageKind = normalizeChatThreadMessageKind(message?.messageKind);
+            if ((!text && !mediaUrl && !locationName && !stickerText) || !isPresetNetworkAccount(senderAccount)) return null;
 
             return {
                 id: String(message?.id || `online-${senderAccount}-${Number(message?.createdAt) || (Date.now() + index)}`),
                 senderAccount,
                 text,
+                messageKind,
+                mediaUrl,
+                locationName,
+                locationAddress,
+                stickerText,
                 createdAt: Number(message?.createdAt) || (Date.now() + index)
             };
         }
@@ -3610,7 +4357,10 @@
 
         function buildOnlineThreadPreview(thread) {
             const lastMessage = thread?.messages?.[thread.messages.length - 1];
-            if (lastMessage?.text) return buildChatRoleSummary(lastMessage.text, 52) || lastMessage.text;
+            if (lastMessage) {
+                const previewText = getChatThreadMessagePreviewText(lastMessage);
+                if (previewText) return buildChatRoleSummary(previewText, 52) || previewText;
+            }
 
             const peerAccountId = getOnlinePeerAccountId(thread);
             const peerProfile = getNetworkAccountUserProfile(peerAccountId);
@@ -4194,16 +4944,18 @@
             thread.messages.forEach(message => {
                 const isSelf = message.senderAccount === currentAccount.account;
                 const senderName = getNetworkAccountDisplayName(message.senderAccount);
+                const renderedMessage = buildChatThreadRichMessageContent(message);
                 const item = document.createElement('div');
                 item.className = `chat-role-message ${isSelf ? 'user' : 'assistant'}`;
                 item.innerHTML = `
-                    <div class="chat-role-bubble">${escapeHtml(message.text).replace(/\n/g, '<br>')}</div>
+                    <div class="chat-role-bubble${renderedMessage.rich ? ' is-rich' : ''}">${renderedMessage.html}</div>
                     <div class="chat-role-bubble-meta">${escapeHtml(`${senderName} · ${formatChatRoleTime(message.createdAt, true)}`)}</div>
                 `;
                 container.appendChild(item);
             });
 
             container.scrollTop = container.scrollHeight;
+            feather.replace({ 'stroke-width': 1.2 });
         }
 
         function openOnlineChatThread(threadId) {
@@ -4217,6 +4969,7 @@
             if (!thread || !thread.participants.includes(currentAccount.account)) return;
 
             currentOnlineThreadId = thread.id;
+            closeChatThreadComposerUi('online');
             renderOnlineChatThreadDetail();
             renderOnlineChatThreadMessages();
             toggleChatSubscreen('chat-online-thread-screen', true);
@@ -4231,6 +4984,7 @@
 
         function closeOnlineChatThread(event) {
             if (event && event.target !== event.currentTarget) return;
+            closeChatThreadComposerUi('online');
             toggleChatSubscreen('chat-online-thread-screen', false);
         }
 
@@ -4244,12 +4998,12 @@
             sendOnlineChatMessage();
         }
 
-        function sendOnlineChatMessage() {
+        function sendOnlineChatMessage(customMessage = null) {
             const currentAccount = getCurrentNetworkAccount();
             const currentProfile = currentAccount ? getNetworkAccountUserProfile(currentAccount.account) : null;
             const thread = getCurrentOnlineThread();
             const input = document.getElementById('chat-online-thread-input');
-            const text = String(input?.value || '').trim();
+            const draftMessage = customMessage || createTextChatThreadMessage(String(input?.value || '').trim());
 
             if (!currentAccount) {
                 setOnlineThreadStatus('请先登录联机账号。', 'error');
@@ -4263,7 +5017,7 @@
                 setOnlineThreadStatus('当前没有可用的联机会话。', 'error');
                 return;
             }
-            if (!text) {
+            if (!draftMessage) {
                 setOnlineThreadStatus('请输入消息后再发送。', 'error');
                 return;
             }
@@ -4280,25 +5034,21 @@
 
             const liveThread = ensureOnlineThread(currentAccount.account, peerAccountId);
             const now = Date.now();
-            liveThread.messages.push({
-                id: `online-${currentAccount.account}-${now}`,
-                senderAccount: currentAccount.account,
-                text,
-                createdAt: now
-            });
+            liveThread.messages.push(buildPersistedOnlineThreadMessage(currentAccount.account, draftMessage, now));
             liveThread.updatedAt = now;
             persistNetworkState();
 
-            if (input) {
+            if (!customMessage && input) {
                 input.value = '';
                 syncChatRoleThreadInputHeight(input);
             }
 
+            closeChatThreadComposerUi('online');
             renderNetworkSettingsPanel();
             renderOnlineThreadList();
             renderOnlineChatThreadDetail();
             renderOnlineChatThreadMessages();
-            setOnlineThreadStatus(`消息已发送给 ${peerProfile.name || peerAccountId}。`, 'success');
+            setOnlineThreadStatus(`已把${getChatThreadMessagePreviewText(draftMessage) || '消息'}发给 ${peerProfile.name || peerAccountId}。`, 'success');
         }
 
         function handleNetworkStorageSync(event) {
@@ -4424,6 +5174,7 @@
             renderChatRoleThreadList();
             renderChatRoleConfigScreen();
             renderChatRoleThreadDetail();
+            renderChatRoleDiaryScreen();
 
             if (chatThreadsChanged || chatWorldbookChanged) await persistChatRoleThreads();
         }
@@ -4446,7 +5197,9 @@
             }
 
             if (show) {
+                chatSubscreenZIndexSeed += 1;
                 screen.style.display = 'flex';
+                screen.style.zIndex = String(chatSubscreenZIndexSeed);
                 screen.offsetHeight;
                 screen.style.opacity = '1';
                 return;
@@ -4455,6 +5208,7 @@
             screen.style.opacity = '0';
             screen._hideTimer = setTimeout(() => {
                 screen.style.display = 'none';
+                screen.style.zIndex = '';
                 screen._hideTimer = null;
             }, 220);
         }
@@ -4671,8 +5425,10 @@
             renderChatRoleThreadList();
             renderChatRoleConfigScreen();
             renderChatRoleThreadDetail();
+            renderChatRoleDiaryScreen();
             renderChatRoleThreadMessages();
             closeChatRolePicker(null);
+            closeChatRoleDiary(null);
             closeChatRoleThread(null);
         }
 
@@ -4712,6 +5468,7 @@
                 thread.identitySummary = String(identityEntry.content || thread.identitySummary || '').trim();
                 thread.identityImageFile = identityEntry.imageFile || null;
                 thread.worldbookIds = sortNumericIdList(selectedWorldbooks.map(entry => entry.id));
+                thread.diaries = normalizeChatRoleDiaryEntries(thread.diaries);
                 thread.updatedAt = now;
             } else {
                 thread = {
@@ -4728,7 +5485,8 @@
                     worldbookIds: sortNumericIdList(selectedWorldbooks.map(entry => entry.id)),
                     createdAt: now,
                     updatedAt: now,
-                    messages: []
+                    messages: [],
+                    diaries: []
                 };
                 chatRoleThreads.unshift(thread);
             }
@@ -4803,7 +5561,7 @@
         }
 
         function renderChatRoleThreadDetail() {
-            const thread = chatRoleThreads.find(item => item.id === currentChatRoleThreadId);
+            const thread = getCurrentChatRoleThread();
             const worldbookContainer = document.getElementById('chat-role-thread-worldbooks');
             if (!thread) {
                 document.getElementById('chat-role-thread-title').innerText = '角色会话';
@@ -4853,6 +5611,7 @@
                 }
             }
 
+            renderChatRoleDiaryScreen();
             feather.replace({ 'stroke-width': 1.2 });
         }
 
@@ -4861,6 +5620,7 @@
             if (!thread) return;
 
             currentChatRoleThreadId = thread.id;
+            closeChatThreadComposerUi('role');
             renderChatRoleThreadDetail();
             renderChatRoleThreadMessages();
             toggleChatSubscreen('chat-role-thread-screen', true);
@@ -4875,6 +5635,7 @@
 
         function closeChatRoleThread(event) {
             if (event && event.target !== event.currentTarget) return;
+            closeChatThreadComposerUi('role');
             toggleChatSubscreen('chat-role-thread-screen', false);
         }
 
@@ -4883,11 +5644,94 @@
             openChatRoleConfigScreen(currentChatRoleThreadId);
         }
 
+        function renderChatRoleDiaryScreen() {
+            const thread = getCurrentChatRoleThread();
+            const title = document.getElementById('chat-role-diary-title');
+            const subtitle = document.getElementById('chat-role-diary-subtitle');
+            const heroName = document.getElementById('chat-role-diary-hero-name');
+            const heroSummary = document.getElementById('chat-role-diary-hero-summary');
+            const countElement = document.getElementById('chat-role-diary-count');
+            const latestElement = document.getElementById('chat-role-diary-latest');
+            const list = document.getElementById('chat-role-diary-list');
+            const avatar = document.getElementById('chat-role-diary-avatar');
+
+            if (!title || !subtitle || !heroName || !heroSummary || !countElement || !latestElement || !list || !avatar) return;
+
+            if (!thread) {
+                title.innerText = '角色日记';
+                subtitle.innerText = '记录当前角色会话的私密日记';
+                heroName.innerText = '角色日记';
+                heroSummary.innerText = '会话里沉淀下来的日记会集中显示在这里。';
+                countElement.innerText = '0 篇';
+                latestElement.innerText = '尚无记录';
+                list.innerHTML = '<div class="chat-role-diary-empty">当前还没有可查看的角色会话。先返回消息页打开一条角色聊天，再进入这里。</div>';
+                setBackgroundFilePreview(avatar, null, '<i data-feather="book-open"></i>');
+                feather.replace({ 'stroke-width': 1.2 });
+                return;
+            }
+
+            const diaries = getCurrentChatRoleThreadDiaries();
+            const latestDiary = diaries[0] || null;
+            const typeLabel = getArchiveTypeLabel(thread.type);
+            title.innerText = `${thread.name} · 日记`;
+            subtitle.innerText = `${typeLabel} 档案角色的独立日记页`;
+            heroName.innerText = thread.name;
+            heroSummary.innerText = diaries.length
+                ? '这里会保留当前角色在聊天里沉淀下来的私密日记。'
+                : '当前还没有日记；当角色回复使用 create_diary 时，这里会自动出现新条目。';
+            countElement.innerText = `${diaries.length} 篇`;
+            latestElement.innerText = latestDiary ? formatChatRoleTime(latestDiary.createdAt) : '尚无记录';
+            setBackgroundFilePreview(
+                avatar,
+                thread.imageFile,
+                `<span class="chat-thread-role-avatar-label">${escapeHtml(typeLabel)}</span>`
+            );
+
+            if (!diaries.length) {
+                list.innerHTML = '<div class="chat-role-diary-empty">这里还没有日记。后续当角色回复里带有 create_diary 时，会自动同步到这个页面。</div>';
+                feather.replace({ 'stroke-width': 1.2 });
+                return;
+            }
+
+            list.innerHTML = '';
+            diaries.forEach(entry => {
+                const card = document.createElement('article');
+                card.className = 'chat-role-diary-card';
+                card.innerHTML = `
+                    <div class="chat-role-diary-card-top">
+                        <div class="chat-role-diary-card-main">
+                            <div class="chat-role-diary-card-title">${escapeHtml(entry.title || '未命名日记')}</div>
+                            <div class="chat-role-diary-card-meta">
+                                ${entry.mood ? `<span class="chat-role-diary-chip">心情 ${escapeHtml(entry.mood)}</span>` : ''}
+                                ${entry.location ? `<span class="chat-role-diary-chip">地点 ${escapeHtml(entry.location)}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="chat-role-diary-card-time">${escapeHtml(formatChatRoleTime(entry.createdAt, true))}</div>
+                    </div>
+                    <div class="chat-role-diary-card-content">${escapeHtml(entry.content || '').replace(/\n/g, '<br>')}</div>
+                `;
+                list.appendChild(card);
+            });
+
+            feather.replace({ 'stroke-width': 1.2 });
+        }
+
+        function openCurrentChatRoleDiary() {
+            if (!currentChatRoleThreadId) return;
+            renderChatRoleDiaryScreen();
+            toggleChatSubscreen('chat-role-diary-screen', true);
+        }
+
+        function closeChatRoleDiary(event) {
+            if (event && event.target !== event.currentTarget) return;
+            toggleChatSubscreen('chat-role-diary-screen', false);
+        }
+
         function renderChatRoleThreadMessages() {
             const container = document.getElementById('chat-role-thread-messages');
             if (!container) return;
 
-            const thread = chatRoleThreads.find(item => item.id === currentChatRoleThreadId);
+            const thread = getCurrentChatRoleThread();
             if (!thread || !thread.messages.length) {
                 container.innerHTML = '<div class="chat-role-thread-empty">这里还没有消息。输入一句话开始对话，或者直接空发送，让角色按当前设定主动接一句。</div>';
                 return;
@@ -4896,7 +5740,8 @@
             container.innerHTML = '';
             thread.messages.forEach(message => {
                 const displayText = getChatRoleMessageDisplayText(message) || getChatRoleMessageRawContent(message);
-                const assistantContent = message.role === 'assistant'
+                const renderedUserMessage = buildChatThreadRichMessageContent(message);
+                const bubbleContent = message.role === 'assistant'
                     ? `
                         ${message.messageType ? `<div class="chat-role-bubble-type">${escapeHtml(message.messageType)}</div>` : ''}
                         <div>${escapeHtml(displayText).replace(/\n/g, '<br>')}</div>
@@ -4909,18 +5754,19 @@
                             </div>
                         ` : ''}
                     `
-                    : `${escapeHtml(displayText).replace(/\n/g, '<br>')}`;
+                    : renderedUserMessage.html;
 
                 const item = document.createElement('div');
                 item.className = `chat-role-message ${message.role === 'user' ? 'user' : 'assistant'}`;
                 item.innerHTML = `
-                    <div class="chat-role-bubble">${assistantContent}</div>
+                    <div class="chat-role-bubble${message.role === 'user' && renderedUserMessage.rich ? ' is-rich' : ''}">${bubbleContent}</div>
                     <div class="chat-role-bubble-meta">${escapeHtml(formatChatRoleTime(message.createdAt, true))}</div>
                 `;
                 container.appendChild(item);
             });
 
             container.scrollTop = container.scrollHeight;
+            feather.replace({ 'stroke-width': 1.2 });
         }
 
         function syncChatPanels(tab) {
@@ -4939,8 +5785,11 @@
             renderOnlineThreadList();
             renderChatRoleConfigScreen();
             renderChatRoleThreadDetail();
+            renderChatRoleDiaryScreen();
             renderOnlineChatThreadDetail();
             updateChatRoleSendButtonState();
+            closeChatThreadComposerUi('role');
+            closeChatThreadComposerUi('online');
             const screen = document.getElementById('chat-screen');
             screen.style.display = 'flex';
             screen.offsetHeight;
@@ -4954,8 +5803,11 @@
             const screen = document.getElementById('chat-screen');
             closeChatRolePicker(null);
             closeChatRoleThread(null);
+            closeChatRoleDiary(null);
             closeOnlineChatPicker(null);
             closeOnlineChatThread(null);
+            closeChatThreadComposerUi('role');
+            closeChatThreadComposerUi('online');
             screen.style.opacity = '0';
             setTimeout(() => {
                 screen.style.display = 'none';
@@ -5866,16 +6718,59 @@
             }
         }
 
+        function isServiceWorkerDevelopmentHost(hostname = window.location.hostname) {
+            const host = String(hostname || '').toLowerCase();
+            return ['localhost', '127.0.0.1', '0.0.0.0', '::1'].includes(host) || host.endsWith('.local');
+        }
+
+        async function clearYujiServiceWorkerCaches() {
+            if (!('caches' in window)) return;
+
+            try {
+                const cacheKeys = await caches.keys();
+                await Promise.all(
+                    cacheKeys
+                        .filter(key => key.startsWith('yuji-static-'))
+                        .map(key => caches.delete(key))
+                );
+            } catch (error) {
+                // cache cleanup should never block startup
+            }
+        }
+
+        async function unregisterDevelopmentServiceWorkers() {
+            if (!('serviceWorker' in navigator)) return;
+
+            try {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                await Promise.all(registrations.map(registration => registration.unregister()));
+            } catch (error) {
+                // stale workers are non-fatal during development
+            }
+
+            await clearYujiServiceWorkerCaches();
+        }
+
         function shouldRegisterServiceWorker() {
             if (!('serviceWorker' in navigator)) return false;
-            if (window.location.protocol === 'https:') return true;
-            return ['localhost', '127.0.0.1'].includes(window.location.hostname);
+            if (isServiceWorkerDevelopmentHost()) return false;
+            return window.location.protocol === 'https:';
         }
 
         function registerAppServiceWorker() {
-            if (!shouldRegisterServiceWorker()) return;
+            if (!('serviceWorker' in navigator)) return;
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(() => {
+                if (isServiceWorkerDevelopmentHost()) {
+                    void unregisterDevelopmentServiceWorkers();
+                    return;
+                }
+                if (!shouldRegisterServiceWorker()) return;
+
+                navigator.serviceWorker.register('./sw.js').then(registration => {
+                    registration.update().catch(() => {
+                        // background update checks should stay silent
+                    });
+                }).catch(() => {
                     // deployment metadata should never block app startup
                 });
             });

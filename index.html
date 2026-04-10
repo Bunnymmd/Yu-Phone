@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Yu机</title>
     <meta name="description" content="Yu机是一个把本地档案、世界书、角色聊天、论坛感界面和轻量持久化整合到一起的单页应用。">
     <meta name="theme-color" content="#ebf3f9">
@@ -1084,7 +1084,10 @@
                     <div class="chat-subscreen-title" id="chat-role-thread-title">角色会话</div>
                     <div id="chat-role-thread-subtitle" class="chat-subscreen-subtitle">档案角色聊天</div>
                 </div>
-                <div class="header-action-icon-btn" onclick="openCurrentChatRoleConfig()"><i data-feather="sliders"></i></div>
+                <div class="chat-subscreen-actions">
+                    <button class="header-action-icon-btn" type="button" aria-label="打开角色日记" onclick="openCurrentChatRoleDiary()"><i data-feather="book-open"></i></button>
+                    <button class="header-action-icon-btn" type="button" aria-label="编辑角色绑定" onclick="openCurrentChatRoleConfig()"><i data-feather="sliders"></i></button>
+                </div>
             </div>
             <div class="chat-subscreen-body chat-role-thread-page-layout">
                 <div class="chat-role-thread-hero">
@@ -1115,9 +1118,73 @@
                 <div id="chat-role-thread-status" class="api-chat-status">发送按钮和 Enter 都会发出消息；输入框为空时会让角色主动接一句。</div>
                 <div id="chat-role-thread-messages" class="chat-role-thread-messages chat-role-thread-page-messages"></div>
             </div>
+            <div id="chat-role-thread-tools" class="chat-thread-tools" hidden>
+                <button class="chat-thread-tool-btn" type="button" onclick="handleChatThreadToolAction('role', 'voice')">
+                    <i data-feather="mic"></i>
+                    <span>语音</span>
+                </button>
+                <button class="chat-thread-tool-btn" type="button" onclick="handleChatThreadToolAction('role', 'image')">
+                    <i data-feather="image"></i>
+                    <span>图片</span>
+                </button>
+                <button class="chat-thread-tool-btn" type="button" onclick="handleChatThreadToolAction('role', 'photo')">
+                    <i data-feather="camera"></i>
+                    <span>照片</span>
+                </button>
+                <button class="chat-thread-tool-btn" type="button" onclick="handleChatThreadToolAction('role', 'location')">
+                    <i data-feather="map-pin"></i>
+                    <span>定位</span>
+                </button>
+                <button class="chat-thread-tool-btn" type="button" onclick="handleChatThreadToolAction('role', 'sticker')">
+                    <i data-feather="smile"></i>
+                    <span>表情</span>
+                </button>
+                <button class="chat-thread-tool-btn" type="button" onclick="handleChatThreadToolAction('role', 'call')">
+                    <i data-feather="phone"></i>
+                    <span>电话</span>
+                </button>
+                <button class="chat-thread-tool-btn" type="button" onclick="handleChatThreadToolAction('role', 'video')">
+                    <i data-feather="video"></i>
+                    <span>视频</span>
+                </button>
+            </div>
+            <div id="chat-role-thread-sticker-panel" class="chat-thread-sticker-panel" hidden></div>
             <div class="chat-role-thread-composer">
+                <button id="chat-role-thread-plus-btn" class="chat-thread-plus-btn" type="button" aria-label="展开聊天工具" aria-expanded="false" onclick="toggleChatThreadTools('role')"><i data-feather="plus"></i></button>
                 <textarea id="chat-role-thread-input" class="input-field chat-role-thread-input" rows="1" maxlength="1200" placeholder="输入内容，按 Enter 发送，Shift + Enter 换行；空输入会触发角色主动回复" oninput="handleChatRoleThreadInput(event)" onkeydown="handleChatRoleThreadInputKeydown(event)"></textarea>
                 <button id="chat-role-thread-send-btn" class="btn" type="button" onclick="sendChatRoleMessage()">发送</button>
+            </div>
+        </div>
+
+        <div id="chat-role-diary-screen" class="chat-subscreen">
+            <div class="chat-subscreen-header">
+                <div class="back-btn" onclick="closeChatRoleDiary(null)"><i data-feather="chevron-left"></i></div>
+                <div class="chat-subscreen-header-copy">
+                    <div class="chat-subscreen-title" id="chat-role-diary-title">角色日记</div>
+                    <div class="chat-subscreen-subtitle" id="chat-role-diary-subtitle">记录当前角色会话的私密日记</div>
+                </div>
+            </div>
+            <div class="chat-subscreen-body">
+                <div class="chat-role-diary-hero">
+                    <div class="chat-role-thread-hero-top">
+                        <div class="chat-thread-avatar" id="chat-role-diary-avatar"><i data-feather="book-open"></i></div>
+                        <div class="chat-role-thread-hero-copy">
+                            <div class="chat-role-thread-hero-title" id="chat-role-diary-hero-name">角色日记</div>
+                            <div class="chat-role-thread-hero-subtitle" id="chat-role-diary-hero-summary">会话里沉淀下来的日记会集中显示在这里。</div>
+                        </div>
+                    </div>
+                    <div class="chat-role-thread-association-grid">
+                        <div class="chat-role-thread-association-card">
+                            <span>日记篇数</span>
+                            <strong id="chat-role-diary-count">0 篇</strong>
+                        </div>
+                        <div class="chat-role-thread-association-card">
+                            <span>最近更新</span>
+                            <strong id="chat-role-diary-latest">尚无记录</strong>
+                        </div>
+                    </div>
+                </div>
+                <div id="chat-role-diary-list" class="chat-role-diary-list"></div>
             </div>
         </div>
 
@@ -1217,7 +1284,39 @@
                 <div id="chat-online-thread-status" class="api-chat-status">联机会话消息保存在当前浏览器；切换到另一组账号后会读取同一条私聊线程。</div>
                 <div id="chat-online-thread-messages" class="chat-role-thread-messages chat-role-thread-page-messages"></div>
             </div>
+            <div id="chat-online-thread-tools" class="chat-thread-tools" hidden>
+                <button class="chat-thread-tool-btn" type="button" onclick="handleChatThreadToolAction('online', 'voice')">
+                    <i data-feather="mic"></i>
+                    <span>语音</span>
+                </button>
+                <button class="chat-thread-tool-btn" type="button" onclick="handleChatThreadToolAction('online', 'image')">
+                    <i data-feather="image"></i>
+                    <span>图片</span>
+                </button>
+                <button class="chat-thread-tool-btn" type="button" onclick="handleChatThreadToolAction('online', 'photo')">
+                    <i data-feather="camera"></i>
+                    <span>照片</span>
+                </button>
+                <button class="chat-thread-tool-btn" type="button" onclick="handleChatThreadToolAction('online', 'location')">
+                    <i data-feather="map-pin"></i>
+                    <span>定位</span>
+                </button>
+                <button class="chat-thread-tool-btn" type="button" onclick="handleChatThreadToolAction('online', 'sticker')">
+                    <i data-feather="smile"></i>
+                    <span>表情</span>
+                </button>
+                <button class="chat-thread-tool-btn" type="button" onclick="handleChatThreadToolAction('online', 'call')">
+                    <i data-feather="phone"></i>
+                    <span>电话</span>
+                </button>
+                <button class="chat-thread-tool-btn" type="button" onclick="handleChatThreadToolAction('online', 'video')">
+                    <i data-feather="video"></i>
+                    <span>视频</span>
+                </button>
+            </div>
+            <div id="chat-online-thread-sticker-panel" class="chat-thread-sticker-panel" hidden></div>
             <div class="chat-role-thread-composer">
+                <button id="chat-online-thread-plus-btn" class="chat-thread-plus-btn" type="button" aria-label="展开聊天工具" aria-expanded="false" onclick="toggleChatThreadTools('online')"><i data-feather="plus"></i></button>
                 <textarea id="chat-online-thread-input" class="input-field chat-role-thread-input" rows="1" maxlength="1200" placeholder="输入消息，按 Enter 发送，Shift + Enter 换行" oninput="handleOnlineChatThreadInput(event)" onkeydown="handleOnlineChatThreadInputKeydown(event)"></textarea>
                 <button id="chat-online-thread-send-btn" class="btn" type="button" onclick="sendOnlineChatMessage()">发送</button>
             </div>
@@ -1257,6 +1356,10 @@
     <input type="file" id="forum-avatar-input" class="file-input" accept="image/*" onchange="handleForumImageSelect(event, 'avatar')">
     <input type="file" id="forum-bg-input" class="file-input" accept="image/*" onchange="handleForumImageSelect(event, 'background')">
     <input type="file" id="archive-image-input" class="file-input" accept="image/*" onchange="handleArchiveImageSelect(event)">
+    <input type="file" id="chat-role-thread-image-input" class="file-input" accept="image/*" onchange="handleChatThreadImageSelect(event, 'role', 'image')">
+    <input type="file" id="chat-role-thread-photo-input" class="file-input" accept="image/*" capture="environment" onchange="handleChatThreadImageSelect(event, 'role', 'photo')">
+    <input type="file" id="chat-online-thread-image-input" class="file-input" accept="image/*" onchange="handleChatThreadImageSelect(event, 'online', 'image')">
+    <input type="file" id="chat-online-thread-photo-input" class="file-input" accept="image/*" capture="environment" onchange="handleChatThreadImageSelect(event, 'online', 'photo')">
 
     <script src="script.js"></script>
 </body>
